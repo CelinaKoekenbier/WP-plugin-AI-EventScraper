@@ -1,0 +1,5 @@
+# Ignora cosas comunes
+.DS_Store
+node_modules/
+vendor/
+*.log

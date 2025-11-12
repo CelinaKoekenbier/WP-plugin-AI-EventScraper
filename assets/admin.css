@@ -1,0 +1,280 @@
+/**
+ * Events to Posts Scraper – Admin styles.
+ *
+ * Provides layout and visual styling for the settings screen:
+ * - Two-column layout (form + sidebar).
+ * - Status log palette (success/error/loading states).
+ * - Utility classes for the informational panels rendered by `Settings`.
+ */
+
+.apify-events-settings {
+    display: flex;
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.apify-events-main {
+    flex: 1;
+}
+
+.apify-events-sidebar {
+    width: 300px;
+}
+
+.apify-events-sidebar > div {
+    background: #fff;
+    border: 1px solid #ccd0d4;
+    padding: 15px;
+    margin-bottom: 20px;
+    border-radius: 4px;
+    box-shadow: 0 1px 1px rgba(0,0,0,0.04);
+}
+
+.apify-events-sidebar h3 {
+    margin-top: 0;
+    color: #23282d;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.apify-run-status {
+    margin-top: 10px;
+    padding: 10px;
+    border-radius: 4px;
+    display: none;
+    font-size: 13px;
+}
+
+.apify-run-status.success {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.apify-run-status.error {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+.apify-run-status.loading {
+    background: #d1ecf1;
+    color: #0c5460;
+    border: 1px solid #bee5eb;
+}
+
+.apify-logs {
+    max-height: 300px;
+    overflow-y: auto;
+    background: #f8f9fa;
+    padding: 10px;
+    border-radius: 4px;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    white-space: pre-wrap;
+    border: 1px solid #e1e1e1;
+    margin-top: 10px;
+}
+
+.apify-logs.empty {
+    color: #6c757d;
+    font-style: italic;
+    text-align: center;
+    padding: 20px;
+}
+
+.apify-events-info p {
+    margin: 8px 0;
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+.apify-events-info strong {
+    color: #23282d;
+}
+
+/* Settings form improvements */
+.form-table th {
+    width: 200px;
+    padding: 20px 10px 20px 0;
+}
+
+.form-table td {
+    padding: 15px 10px;
+}
+
+.form-table .description {
+    margin-top: 5px;
+    font-style: italic;
+    color: #666;
+}
+
+/* Button styling */
+#apify-run-now {
+    background: #0073aa;
+    border-color: #0073aa;
+    color: #fff;
+    text-shadow: none;
+    box-shadow: none;
+}
+
+#apify-run-now:hover {
+    background: #005a87;
+    border-color: #005a87;
+}
+
+#apify-run-now:disabled {
+    background: #ccc;
+    border-color: #ccc;
+    cursor: not-allowed;
+}
+
+/* Responsive design */
+@media (max-width: 782px) {
+    .apify-events-settings {
+        flex-direction: column;
+    }
+    
+    .apify-events-sidebar {
+        width: 100%;
+    }
+}
+
+/* Loading spinner */
+.apify-loading {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid #f3f3f3;
+    border-top: 2px solid #0073aa;
+    border-radius: 50%;
+    animation: apify-spin 1s linear infinite;
+    margin-right: 8px;
+}
+
+@keyframes apify-spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Status indicators */
+.apify-status-indicator {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 5px;
+}
+
+.apify-status-indicator.success {
+    background-color: #46b450;
+}
+
+.apify-status-indicator.error {
+    background-color: #dc3232;
+}
+
+.apify-status-indicator.warning {
+    background-color: #ffb900;
+}
+
+.apify-status-indicator.info {
+    background-color: #00a0d2;
+}
+
+/* Event info styling */
+.apify-event-info {
+    background: #f9f9f9;
+    border: 1px solid #e1e1e1;
+    border-radius: 4px;
+    padding: 15px;
+    margin-bottom: 15px;
+}
+
+.apify-event-info dl {
+    margin: 0;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 8px 15px;
+}
+
+.apify-event-info dt {
+    font-weight: 600;
+    color: #23282d;
+}
+
+.apify-event-info dd {
+    margin: 0;
+    color: #666;
+}
+
+.apify-event-description {
+    line-height: 1.6;
+    color: #333;
+}
+
+/* Admin notices */
+.notice.apify-events-notice {
+    border-left-color: #0073aa;
+}
+
+.notice.apify-events-notice.notice-success {
+    border-left-color: #46b450;
+}
+
+.notice.apify-events-notice.notice-error {
+    border-left-color: #dc3232;
+}
+
+.notice.apify-events-notice.notice-warning {
+    border-left-color: #ffb900;
+}
+
+/* Progress bar */
+.apify-progress {
+    width: 100%;
+    height: 20px;
+    background-color: #f0f0f0;
+    border-radius: 10px;
+    overflow: hidden;
+    margin: 10px 0;
+}
+
+.apify-progress-bar {
+    height: 100%;
+    background-color: #0073aa;
+    transition: width 0.3s ease;
+    border-radius: 10px;
+}
+
+/* Tooltips */
+.apify-tooltip {
+    position: relative;
+    cursor: help;
+}
+
+.apify-tooltip:hover::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #333;
+    color: #fff;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    white-space: nowrap;
+    z-index: 1000;
+}
+
+.apify-tooltip:hover::before {
+    content: '';
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 5px solid transparent;
+    border-top-color: #333;
+    z-index: 1000;
+}
