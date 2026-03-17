@@ -185,22 +185,22 @@ class Importer
         // Date
         if (!empty($event_data['date_start'])) {
             $date_str = $this->formatDateForContent($event_data['date_start']);
-            $content .= '<dt>Datum:</dt><dd>' . esc_html($date_str) . '</dd>' . "\n";
+            $content .= '<dt>Date:</dt><dd>' . esc_html($date_str) . '</dd>' . "\n";
         }
         
         // Time
         if (!empty($event_data['time'])) {
-            $content .= '<dt>Tijd:</dt><dd>' . esc_html($event_data['time']) . '</dd>' . "\n";
+            $content .= '<dt>Time:</dt><dd>' . esc_html($event_data['time']) . '</dd>' . "\n";
         }
         
         // Place
         if (!empty($event_data['place'])) {
-            $content .= '<dt>Plaats:</dt><dd>' . esc_html($event_data['place']) . '</dd>' . "\n";
+            $content .= '<dt>Place:</dt><dd>' . esc_html($event_data['place']) . '</dd>' . "\n";
         }
         
         // Source
         if (!empty($event_data['url'])) {
-            $content .= '<dt>Bron:</dt><dd><a href="' . esc_url($event_data['url']) . '" rel="nofollow noopener" target="_blank">' . esc_html($event_data['url']) . '</a></dd>' . "\n";
+            $content .= '<dt>Source:</dt><dd><a href="' . esc_url($event_data['url']) . '" rel="nofollow noopener" target="_blank">' . esc_html($event_data['url']) . '</a></dd>' . "\n";
         }
         
         $content .= '</dl>' . "\n";
@@ -228,13 +228,13 @@ class Importer
         $month = $date->format('n');
         $year = $date->format('Y');
         
-        $dutch_months = [
-            1 => 'januari', 2 => 'februari', 3 => 'maart', 4 => 'april',
-            5 => 'mei', 6 => 'juni', 7 => 'juli', 8 => 'augustus',
-            9 => 'september', 10 => 'oktober', 11 => 'november', 12 => 'december'
+        $english_months = [
+            1 => 'January', 2 => 'February', 3 => 'March', 4 => 'April',
+            5 => 'May', 6 => 'June', 7 => 'July', 8 => 'August',
+            9 => 'September', 10 => 'October', 11 => 'November', 12 => 'December'
         ];
         
-        return "{$day} {$dutch_months[$month]} {$year}";
+        return "{$day} {$english_months[$month]} {$year}";
     }
 
     /**
@@ -258,7 +258,7 @@ class Importer
         
         if ($result) {
             // Set alt text
-            $alt_text = "foto van {$title}. Voor meer informatie: {$source_url}";
+            $alt_text = "Photo of {$title}. Source: {$source_url}";
             update_post_meta($attachment_id, '_wp_attachment_image_alt', $alt_text);
             
             return $attachment_id;
@@ -351,10 +351,10 @@ class Importer
      */
     private function setTaxonomies($post_id)
     {
-        // Set category "Evenementen"
-        $category = get_category_by_slug('evenementen');
+        // Set category "Events" (fallback to legacy Dutch slug if it already exists)
+        $category = get_category_by_slug('events') ?: get_category_by_slug('evenementen');
         if (!$category) {
-            $category_id = wp_create_category('Evenementen');
+            $category_id = wp_create_category('Events');
         } else {
             $category_id = $category->term_id;
         }
@@ -363,10 +363,10 @@ class Importer
             wp_set_post_categories($post_id, [$category_id]);
         }
         
-        // Set tag "Apify import"
-        $tag = get_term_by('name', 'Apify import', 'post_tag');
+        // Set tag "AI import" (fallback to legacy tag name if it already exists)
+        $tag = get_term_by('name', 'AI import', 'post_tag') ?: get_term_by('name', 'Apify import', 'post_tag');
         if (!$tag) {
-            $tag_result = wp_insert_term('Apify import', 'post_tag');
+            $tag_result = wp_insert_term('AI import', 'post_tag');
             if (!is_wp_error($tag_result)) {
                 $tag_id = $tag_result['term_id'];
             }

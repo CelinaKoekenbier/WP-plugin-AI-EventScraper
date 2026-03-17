@@ -7,6 +7,17 @@
  * - Utility classes for the informational panels rendered by `Settings`.
  */
 
+body.settings_page_apify-events {
+    --apify-accent: #5cb3b4;
+    --apify-accent-hover: #4aa3a4;
+    --apify-accent-active: #3c9495;
+}
+
+/* Remove default WP .wrap top margin so the header image touches the top */
+body.settings_page_apify-events .wrap {
+    margin-top: 0;
+}
+
 .apify-events-settings {
     display: flex;
     gap: 20px;
@@ -22,11 +33,12 @@
 }
 
 .apify-events-page-header {
-    margin-top: 10px;
+    margin-top: 0;
     margin-bottom: 10px;
     position: sticky;
     top: 32px; /* WP admin bar (desktop) */
     z-index: 999;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
 }
 
 .apify-events-page-footer {
@@ -151,23 +163,85 @@
 }
 
 /* Button styling */
-#apify-run-now {
-    background: #0073aa;
-    border-color: #0073aa;
+body.settings_page_apify-events .apify-events-settings .button.button-primary,
+body.settings_page_apify-events #apify-run-now.button.button-primary {
+    background: var(--apify-accent);
+    border-color: var(--apify-accent);
     color: #fff;
     text-shadow: none;
     box-shadow: none;
 }
 
-#apify-run-now:hover {
-    background: #005a87;
-    border-color: #005a87;
+body.settings_page_apify-events .apify-events-settings .button.button-primary:hover,
+body.settings_page_apify-events #apify-run-now.button.button-primary:hover {
+    background: var(--apify-accent-hover);
+    border-color: var(--apify-accent-hover);
+    color: #fff;
+}
+
+body.settings_page_apify-events .apify-events-settings .button.button-primary:focus,
+body.settings_page_apify-events #apify-run-now.button.button-primary:focus {
+    box-shadow: 0 0 0 1px #fff, 0 0 0 3px rgba(92, 179, 180, 0.45);
+}
+
+body.settings_page_apify-events .apify-events-settings .button.button-primary:active,
+body.settings_page_apify-events #apify-run-now.button.button-primary:active {
+    background: var(--apify-accent-active);
+    border-color: var(--apify-accent-active);
+}
+
+/* "Test Connection" button */
+body.settings_page_apify-events #apify-test-connection.button {
+    background: #fff;
+    border-color: var(--apify-accent);
+    color: var(--apify-accent);
+    text-shadow: none;
+    box-shadow: none;
+}
+
+body.settings_page_apify-events #apify-test-connection.button:hover {
+    background: rgba(92, 179, 180, 0.12);
+    border-color: var(--apify-accent-hover);
+    color: var(--apify-accent-hover);
+}
+
+body.settings_page_apify-events #apify-test-connection.button:focus {
+    box-shadow: 0 0 0 1px #fff, 0 0 0 3px rgba(92, 179, 180, 0.45);
+}
+
+body.settings_page_apify-events #apify-test-connection.button:active {
+    background: rgba(92, 179, 180, 0.18);
+    border-color: var(--apify-accent-active);
+    color: var(--apify-accent-active);
 }
 
 #apify-run-now:disabled {
     background: #ccc;
     border-color: #ccc;
     cursor: not-allowed;
+}
+
+/* START HERE block */
+body.settings_page_apify-events .apify-start-here {
+    background: rgba(92, 179, 180, 0.12);
+    border-left: 4px solid var(--apify-accent);
+    padding: 12px;
+    margin-bottom: 10px;
+    border-radius: 4px;
+    color: var(--apify-accent);
+}
+
+body.settings_page_apify-events .apify-start-here strong {
+    color: var(--apify-accent);
+}
+
+body.settings_page_apify-events .apify-accent-text {
+    color: var(--apify-accent);
+}
+
+/* Top "FREE Version" notice accent bar */
+body.settings_page_apify-events .notice.apify-events-notice {
+    border-left-color: var(--apify-accent);
 }
 
 /* Responsive design */

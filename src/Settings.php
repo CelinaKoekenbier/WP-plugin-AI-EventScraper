@@ -30,7 +30,7 @@ class Settings
             <?php $this->renderHeaderImage(); ?>
             <h1 class="apify-events-page-title"><?php echo esc_html(get_admin_page_title()); ?></h1>
             
-            <div class="notice notice-info" style="margin: 15px 0;">
+            <div class="notice notice-info apify-events-notice" style="margin: 15px 0;">
                 <p><strong>🎉 FREE Version Available!</strong> This plugin works WITHOUT any paid subscriptions!</p>
                 <p>✅ <strong>Quick Start:</strong> Scroll down to <strong>"Manual URLs (Free)"</strong> → Add event URLs → Save → Click "Run Now"</p>
                 <p>ℹ️ You can leave "Apify Token" empty. It's only needed for the optional paid method ($49+/month).</p>
@@ -160,7 +160,7 @@ class Settings
             $formatted_log .= "- Posts imported: " . ($stats['imported'] ?? 0) . "\n";
             $formatted_log .= "- Posts skipped: " . ($stats['skipped'] ?? 0) . "\n";
             if (!empty($stats['sample_urls'])) {
-                $formatted_log .= "\nURLs procesadas (muestra):\n";
+                $formatted_log .= "\nProcessed URLs (sample):\n";
                 foreach ($stats['sample_urls'] as $u) {
                     if ($u) $formatted_log .= "- " . $u . "\n";
                 }

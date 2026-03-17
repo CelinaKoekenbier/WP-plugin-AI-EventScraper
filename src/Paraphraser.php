@@ -3,7 +3,7 @@
 namespace ApifyEvents;
 
 /**
- * Dutch text paraphraser.
+ * Event description paraphraser (English output).
  *
  * Converts raw descriptions into short human-readable summaries
  * (≤120 words) through a deterministic set of replacements.
@@ -18,7 +18,7 @@ namespace ApifyEvents;
 class Paraphraser
 {
     /**
-     * Dutch synonyms and phrase replacements
+     * Synonyms and phrase replacements (primarily Dutch → used to clean NL sources).
      */
     private static $synonyms = [
         'evenement' => ['activiteit', 'bijeenkomst', 'gebeurtenis', 'event'],
@@ -87,23 +87,22 @@ class Paraphraser
     ];
 
     /**
-     * Sentence starters for variety
+     * Sentence starters for variety (English)
      */
     private static $sentence_starters = [
-        'Dit evenement',
-        'Deze activiteit',
-        'De bijeenkomst',
-        'Het evenement',
-        'De workshop',
-        'De lezing',
-        'Het festival',
-        'De cursus',
-        'De sessie',
-        'De presentatie',
+        'This event',
+        'This activity',
+        'This gathering',
+        'This workshop',
+        'This talk',
+        'This festival',
+        'This course',
+        'This session',
+        'This presentation',
     ];
 
     /**
-     * Paraphrase text to Dutch, max 120 words
+     * Paraphrase text to English, max 120 words
      */
     public function paraphrase($text, $event_data = [])
     {
@@ -197,19 +196,19 @@ class Paraphraser
         }
         
         if (preg_match('/(gratis|vrijwillige bijdrage|donatie)/i', $text)) {
-            $facts['cost'] = 'gratis';
+            $facts['cost'] = 'free';
         } elseif (preg_match('/(€\s*\d+)/i', $text, $matches)) {
             $facts['cost'] = $matches[1];
         }
         
         if (preg_match('/(aanmelden|inschrijven|registreren)/i', $text)) {
-            $facts['registration'] = 'aanmelding vereist';
+            $facts['registration'] = 'registration required';
         }
         
         if (preg_match('/(workshop|cursus|training)/i', $text)) {
             $facts['type'] = 'workshop';
         } elseif (preg_match('/(lezing|presentatie|voordracht)/i', $text)) {
-            $facts['type'] = 'lezing';
+            $facts['type'] = 'talk';
         } elseif (preg_match('/(festival|feest)/i', $text)) {
             $facts['type'] = 'festival';
         }
@@ -232,24 +231,24 @@ class Paraphraser
         
         if (!empty($key_info['facts']['type'])) {
             $type = $key_info['facts']['type'];
-            $sentences[] = "{$starter} '{$title}' is een {$type}";
+            $sentences[] = "{$starter} '{$title}' is a {$type}";
         } else {
-            $sentences[] = "{$starter} '{$title}' vindt plaats";
+            $sentences[] = "{$starter} '{$title}' takes place";
         }
         
         // Add date and time info
         if ($key_info['date']) {
             $date_str = $this->formatDate($key_info['date']);
             if ($key_info['time']) {
-                $sentences[] = "Het evenement vindt plaats op {$date_str} om {$key_info['time']}";
+                $sentences[] = "It takes place on {$date_str} at {$key_info['time']}";
             } else {
-                $sentences[] = "Het evenement vindt plaats op {$date_str}";
+                $sentences[] = "It takes place on {$date_str}";
             }
         }
         
         // Add location
         if (!empty($key_info['place'])) {
-            $sentences[] = "De locatie is {$key_info['place']}";
+            $sentences[] = "Location: {$key_info['place']}";
         }
         
         // Add description content
@@ -260,11 +259,11 @@ class Paraphraser
         
         // Add additional facts
         if (!empty($key_info['facts']['cost'])) {
-            $sentences[] = "Deelname is {$key_info['facts']['cost']}";
+            $sentences[] = "Cost: {$key_info['facts']['cost']}";
         }
         
         if (!empty($key_info['facts']['participants'])) {
-            $sentences[] = "Er is plaats voor {$key_info['facts']['participants']}";
+            $sentences[] = "Capacity: {$key_info['facts']['participants']}";
         }
         
         if (!empty($key_info['facts']['registration'])) {
@@ -330,7 +329,7 @@ class Paraphraser
     }
 
     /**
-     * Format date for Dutch text
+     * Format date for English text
      */
     private function formatDate($timestamp)
     {
@@ -341,13 +340,13 @@ class Paraphraser
         $month = $date->format('n');
         $year = $date->format('Y');
         
-        $dutch_months = [
-            1 => 'januari', 2 => 'februari', 3 => 'maart', 4 => 'april',
-            5 => 'mei', 6 => 'juni', 7 => 'juli', 8 => 'augustus',
-            9 => 'september', 10 => 'oktober', 11 => 'november', 12 => 'december'
+        $english_months = [
+            1 => 'January', 2 => 'February', 3 => 'March', 4 => 'April',
+            5 => 'May', 6 => 'June', 7 => 'July', 8 => 'August',
+            9 => 'September', 10 => 'October', 11 => 'November', 12 => 'December'
         ];
         
-        return "{$day} {$dutch_months[$month]} {$year}";
+        return "{$day} {$english_months[$month]} {$year}";
     }
 
     /**
@@ -374,7 +373,7 @@ class Paraphraser
             return $text;
         }
         
-        $link_text = "Meer info: {$url}";
+        $link_text = "More info: {$url}";
         return $text . ' ' . $link_text;
     }
 
@@ -385,20 +384,20 @@ class Paraphraser
     {
         $sentences = [];
         
-        $title = $event_data['title'] ?? 'Dit evenement';
-        $sentences[] = "{$title} vindt plaats";
+        $title = $event_data['title'] ?? 'This event';
+        $sentences[] = "{$title} takes place";
         
         if (!empty($event_data['date_start'])) {
             $date_str = $this->formatDate($event_data['date_start']);
-            $sentences[] = "Het evenement vindt plaats op {$date_str}";
+            $sentences[] = "It takes place on {$date_str}";
         }
         
         if (!empty($event_data['time'])) {
-            $sentences[] = "De starttijd is {$event_data['time']}";
+            $sentences[] = "Start time: {$event_data['time']}";
         }
         
         if (!empty($event_data['place'])) {
-            $sentences[] = "De locatie is {$event_data['place']}";
+            $sentences[] = "Location: {$event_data['place']}";
         }
         
         $description = implode('. ', $sentences) . '.';

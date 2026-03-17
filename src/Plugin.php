@@ -344,7 +344,7 @@ class Plugin
         
         echo '<input type="password" name="apify_events_options[apify_token]" value="' . esc_attr($token) . '" class="regular-text" />';
         echo '<p class="description" style="color: #999;">' . __('⚠️ OPTIONAL - Only needed for paid Apify method ($49+/month). Leave empty to use free methods.', 'apify-events-to-posts') . '</p>';
-        echo '<p class="description"><strong style="color: #0073aa;">✅ Use "Manual URLs" below instead (completely free, no token needed)</strong></p>';
+        echo '<p class="description apify-accent-text"><strong>✅ Use "Manual URLs" below instead (completely free, no token needed)</strong></p>';
         if ($masked_token) {
             echo '<p class="description">' . sprintf(__('Current token: %s', 'apify-events-to-posts'), esc_html($masked_token)) . '</p>';
         }
@@ -449,7 +449,7 @@ class Plugin
         $options = get_option('apify_events_options', []);
         $key = $options['serpapi_api_key'] ?? '';
         echo '<input type="text" name="apify_events_options[serpapi_api_key]" value="' . esc_attr($key) . '" class="regular-text" />';
-        echo '<p class="description">' . __('API key for web search (Google results via SerpAPI). <a href="https://serpapi.com/users/sign_up" target="_blank">Registrarse</a> — 100 búsquedas gratis al mes.', 'apify-events-to-posts') . '</p>';
+        echo '<p class="description">' . __('API key for web search (Google results via SerpAPI). <a href="https://serpapi.com/users/sign_up" target="_blank">Sign up</a> — 100 free searches/month.', 'apify-events-to-posts') . '</p>';
     }
 
     /**
@@ -460,9 +460,9 @@ class Plugin
         $options = get_option('apify_events_options', []);
         $manual_urls = $options['manual_urls'] ?? '';
         
-        echo '<div style="background: #e7f5fe; border-left: 4px solid #0073aa; padding: 12px; margin-bottom: 10px;">';
-        echo '<strong style="color: #0073aa;">🎯 START HERE - Easiest Method!</strong><br>';
-        echo 'Add event page URLs below. No API tokens required, works immediately!';
+        echo '<div class="apify-start-here">';
+        echo '<strong>🎯 START HERE - Easiest Method!</strong><br>';
+        echo esc_html__('Add event page URLs below. No API tokens required, works immediately!', 'apify-events-to-posts');
         echo '</div>';
         
         echo '<textarea name="apify_events_options[manual_urls]" rows="8" cols="50" class="large-text" placeholder="https://www.natuurmonumenten.nl/agenda&#10;https://www.ivn.nl/agenda&#10;https://www.staatsbosbeheer.nl/evenementen">' . esc_textarea($manual_urls) . '</textarea>';
@@ -482,6 +482,7 @@ class Plugin
         $test_mode = $options['test_mode'] ?? false;
         
         echo '<label><input type="checkbox" name="apify_events_options[test_mode]" value="1" ' . checked($test_mode, true, false) . ' /> ' . __('Enable test mode (don\'t save posts)', 'apify-events-to-posts') . '</label>';
+        echo '<p class="description">' . __('If disabled the found events will be saved in posts but not published. You should publish them manually.', 'apify-events-to-posts') . '</p>';
     }
 
     /**
@@ -492,8 +493,8 @@ class Plugin
         $options = get_option('apify_events_options', []);
         $restrict = $options['restrict_to_target_week'] ?? false;
         echo '<label><input type="checkbox" name="apify_events_options[restrict_to_target_week]" value="1" ' . checked($restrict, true, false) . ' /> ';
-        echo __('Solo importar eventos de la semana objetivo (4 semanas adelante)', 'apify-events-to-posts') . '</label>';
-        echo '<p class="description">' . __('Si está desactivado, se importan todos los eventos válidos (fechas futuras). Actívalo para limitar a la semana concreta.', 'apify-events-to-posts') . '</p>';
+        echo __('Only import events from the target week (4 weeks ahead)', 'apify-events-to-posts') . '</label>';
+        echo '<p class="description">' . __('If disabled, the plugin imports all valid events (future dates). Enable to restrict to the specific target week.', 'apify-events-to-posts') . '</p>';
     }
 
     /**
