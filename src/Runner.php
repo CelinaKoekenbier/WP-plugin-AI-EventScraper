@@ -495,6 +495,25 @@ class Runner
         } else {
             Utils::log("Target week: {$target_week_str} (not restricting — importing all valid events)", 'info');
         }
+
+        // Keep only events within this month + next month + month after next (and never in the past)
+        $tz = new \DateTimeZone('Europe/Amsterdam');
+        $now = new \DateTime('now', $tz);
+        $windowStart = (clone $now)->modify('first day of this month')->setTime(0, 0, 0);
+        $windowEnd = (clone $now)->modify('first day of this month')->modify('+2 months')->modify('last day of this month')->setTime(23, 59, 59);
+        $windowStartTs = $windowStart->getTimestamp();
+        $windowEndTs = $windowEnd->getTimestamp();
+        $nowTs = $now->getTimestamp();
+
+        $beforeWindow = count($valid_events);
+        $valid_events = array_values(array_filter($valid_events, function ($e) use ($windowStartTs, $windowEndTs, $nowTs) {
+            $d = (int) ($e['date_start'] ?? 0);
+            return $d >= $nowTs && $d >= $windowStartTs && $d <= $windowEndTs;
+        }));
+        $removedWindow = $beforeWindow - count($valid_events);
+        if ($removedWindow > 0) {
+            Utils::log("Filtered to 3-month window: {$removedWindow} events outside current+next+after-next months removed", 'info');
+        }
         
         // Sort by confidence and limit to 10
         usort($valid_events, function($a, $b) {

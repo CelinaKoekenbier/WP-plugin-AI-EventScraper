@@ -42,12 +42,30 @@ class FreeSearchClient
             throw new \Exception('SerpAPI key not configured. Add your key in Settings → Apify Events (100 free searches/month).');
         }
 
+        $queries = array_values(array_filter(array_map('trim', (array) $queries)));
+        if (empty($queries)) {
+            return [];
+        }
+
+        // Enforce monthly budget cap (default 100 searches/month).
+        $remaining = Utils::getSerpApiRemainingThisMonth();
+        if ($remaining <= 0) {
+            Utils::log('SerpAPI monthly budget reached — skipping SerpAPI and using Manual URLs only.', 'info');
+            return [];
+        }
+        if (count($queries) > $remaining) {
+            $queries = array_slice($queries, 0, $remaining);
+            Utils::log('SerpAPI budget cap: limiting queries to ' . count($queries) . ' for this run (remaining this month: ' . $remaining . ').', 'info');
+        }
+
         $all_results = [];
         $last_error = null;
         $per_query = min(10, max(1, (int) ceil($max_results / max(1, count($queries)))));
 
         foreach ($queries as $query) {
             try {
+                // Count 1 SerpAPI search per query (even if it fails, it likely still counts on SerpAPI).
+                Utils::incrementSerpApiUsedThisMonth(1);
                 $results = $this->serpApiSearch($query, $per_query);
                 $all_results = array_merge($all_results, $results);
                 sleep(1); // rate limit

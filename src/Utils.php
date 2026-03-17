@@ -15,6 +15,8 @@ namespace ApifyEvents;
  */
 class Utils
 {
+    private const SERPAPI_USAGE_OPTION = 'apify_events_serpapi_usage';
+
     /**
      * Dutch month names
      */
@@ -510,9 +512,64 @@ class Utils
             'restrict_to_target_week' => false,
             'weekly_day' => 1,      // 1=Mon .. 7=Sun
             'weekly_time' => '09:00', // HH:MM (Europe/Amsterdam)
+            'serpapi_monthly_budget' => 200,
         ];
         
         $options = get_option('apify_events_options', []);
         return array_merge($defaults, $options);
+    }
+
+    /**
+     * Monthly key for SerpAPI usage accounting (Europe/Amsterdam).
+     */
+    public static function getCurrentMonthKey(): string
+    {
+        $tz = new \DateTimeZone('Europe/Amsterdam');
+        return (new \DateTime('now', $tz))->format('Y-m');
+    }
+
+    /**
+     * Get SerpAPI searches used in the current month.
+     */
+    public static function getSerpApiUsedThisMonth(): int
+    {
+        $usage = get_option(self::SERPAPI_USAGE_OPTION, []);
+        if (!is_array($usage)) {
+            $usage = [];
+        }
+        $key = self::getCurrentMonthKey();
+        return isset($usage[$key]) ? max(0, (int) $usage[$key]) : 0;
+    }
+
+    /**
+     * Increment SerpAPI searches used in the current month.
+     */
+    public static function incrementSerpApiUsedThisMonth(int $count): int
+    {
+        $count = max(0, (int) $count);
+        if ($count === 0) {
+            return self::getSerpApiUsedThisMonth();
+        }
+
+        $usage = get_option(self::SERPAPI_USAGE_OPTION, []);
+        if (!is_array($usage)) {
+            $usage = [];
+        }
+
+        $key = self::getCurrentMonthKey();
+        $usage[$key] = max(0, (int) ($usage[$key] ?? 0)) + $count;
+        update_option(self::SERPAPI_USAGE_OPTION, $usage, false);
+        return (int) $usage[$key];
+    }
+
+    /**
+     * Get remaining SerpAPI monthly budget.
+     */
+    public static function getSerpApiRemainingThisMonth(): int
+    {
+        $options = self::getOptions();
+        $budget = isset($options['serpapi_monthly_budget']) ? max(0, (int) $options['serpapi_monthly_budget']) : 200;
+        $used = self::getSerpApiUsedThisMonth();
+        return max(0, $budget - $used);
     }
 }

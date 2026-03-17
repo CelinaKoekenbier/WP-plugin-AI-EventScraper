@@ -245,6 +245,15 @@ class Plugin
             'apify_events_general'
         );
 
+        // SerpAPI monthly budget cap
+        add_settings_field(
+            'serpapi_monthly_budget',
+            __('SerpAPI monthly budget', 'apify-events-to-posts'),
+            [$this, 'renderSerpApiMonthlyBudgetField'],
+            'apify_events_settings',
+            'apify_events_general'
+        );
+
         // Test mode
         add_settings_field(
             'test_mode',
@@ -287,7 +296,11 @@ class Plugin
         if (isset($input['serpapi_api_key'])) {
             $sanitized['serpapi_api_key'] = sanitize_text_field($input['serpapi_api_key']);
         }
-        
+
+        if (isset($input['serpapi_monthly_budget'])) {
+            $sanitized['serpapi_monthly_budget'] = max(0, absint($input['serpapi_monthly_budget']));
+        }
+
         if (isset($input['manual_urls'])) {
             $sanitized['manual_urls'] = sanitize_textarea_field($input['manual_urls']);
         }
@@ -507,6 +520,27 @@ class Plugin
         $key = $options['serpapi_api_key'] ?? '';
         echo '<input type="text" name="apify_events_options[serpapi_api_key]" value="' . esc_attr($key) . '" class="regular-text" />';
         echo '<p class="description">' . __('API key for web search (Google results via SerpAPI). <a href="https://serpapi.com/users/sign_up" target="_blank">Sign up</a> — 100 free searches/month.', 'apify-events-to-posts') . '</p>';
+    }
+
+    /**
+     * Render SerpAPI monthly budget field
+     */
+    public function renderSerpApiMonthlyBudgetField()
+    {
+        $options = Utils::getOptions();
+        $budget = (int) ($options['serpapi_monthly_budget'] ?? 200);
+        $used = Utils::getSerpApiUsedThisMonth();
+        $remaining = Utils::getSerpApiRemainingThisMonth();
+
+        echo '<input type="number" name="apify_events_options[serpapi_monthly_budget]" value="' . esc_attr($budget) . '" class="small-text" min="0" max="100000" /> ';
+
+        echo '<span class="description">' . sprintf(
+            esc_html__('Used this month: %d. Remaining: %d.', 'apify-events-to-posts'),
+            (int) $used,
+            (int) $remaining
+        ) . '</span>';
+
+        echo '<p class="description">' . esc_html__('0 disables SerpAPI usage (Manual URLs only). Default budget: 200.', 'apify-events-to-posts') . '</p>';
     }
 
     /**
