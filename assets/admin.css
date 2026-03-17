@@ -13,6 +13,47 @@
     margin-top: 20px;
 }
 
+.apify-events-page-header,
+.apify-events-page-footer {
+    /* Full-bleed inside WP admin .wrap (which has side padding) */
+    width: calc(100% + 40px);
+    margin-left: -20px;
+    margin-right: -20px;
+}
+
+.apify-events-page-header {
+    margin-top: 10px;
+    margin-bottom: 10px;
+    position: sticky;
+    top: 32px; /* WP admin bar (desktop) */
+    z-index: 999;
+}
+
+.apify-events-page-footer {
+    margin-top: 25px;
+    position: sticky;
+    bottom: 0;
+    z-index: 998;
+}
+
+.apify-events-page-header img,
+.apify-events-page-footer img {
+    display: block;
+    width: 100%;
+    height: auto;
+    max-width: none;
+}
+
+.apify-events-page-title {
+    margin-top: 10px;
+}
+
+@media (max-width: 782px) {
+    .apify-events-page-header {
+        top: 46px; /* WP admin bar (mobile) */
+    }
+}
+
 .apify-events-main {
     flex: 1;
 }

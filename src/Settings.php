@@ -17,6 +17,9 @@ namespace ApifyEvents;
  */
 class Settings
 {
+    private const HEADER_IMAGE_RELATIVE_PATH = 'assets/admin-header.png';
+    private const FOOTER_IMAGE_RELATIVE_PATH = 'assets/admin-footer-grass.png';
+
     /**
      * Render settings page
      */
@@ -24,7 +27,8 @@ class Settings
     {
         ?>
         <div class="wrap">
-            <h1><?php echo esc_html(get_admin_page_title()); ?></h1>
+            <?php $this->renderHeaderImage(); ?>
+            <h1 class="apify-events-page-title"><?php echo esc_html(get_admin_page_title()); ?></h1>
             
             <div class="notice notice-info" style="margin: 15px 0;">
                 <p><strong>🎉 FREE Version Available!</strong> This plugin works WITHOUT any paid subscriptions!</p>
@@ -87,76 +91,39 @@ class Settings
                     </div>
                 </div>
             </div>
+            <?php $this->renderFooterImage(); ?>
         </div>
-        
-        <style>
-        .apify-events-settings {
-            display: flex;
-            gap: 20px;
-            margin-top: 20px;
-        }
-        
-        .apify-events-main {
-            flex: 1;
-        }
-        
-        .apify-events-sidebar {
-            width: 300px;
-        }
-        
-        .apify-events-sidebar > div {
-            background: #fff;
-            border: 1px solid #ccd0d4;
-            padding: 15px;
-            margin-bottom: 20px;
-        }
-        
-        .apify-events-sidebar h3 {
-            margin-top: 0;
-        }
-        
-        .apify-run-status {
-            margin-top: 10px;
-            padding: 10px;
-            border-radius: 4px;
-            display: none;
-        }
-        
-        .apify-run-status.success {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-        
-        .apify-run-status.error {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-        
-        .apify-run-status.loading {
-            background: #d1ecf1;
-            color: #0c5460;
-            border: 1px solid #bee5eb;
-        }
-        
-        .apify-logs {
-            max-height: 300px;
-            overflow-y: auto;
-            background: #f8f9fa;
-            padding: 10px;
-            border-radius: 4px;
-            font-family: monospace;
-            font-size: 12px;
-            white-space: pre-wrap;
-        }
-        
-        .apify-logs.empty {
-            color: #6c757d;
-            font-style: italic;
-        }
-        </style>
         <?php
+    }
+
+    private function renderHeaderImage(): void
+    {
+        $url = $this->getPluginAssetUrl(self::HEADER_IMAGE_RELATIVE_PATH);
+        if (!$url) {
+            return;
+        }
+        echo '<div class="apify-events-page-header"><img src="' . esc_url($url) . '" alt="' . esc_attr__('Plugin header', 'apify-events-to-posts') . '" /></div>';
+    }
+
+    private function renderFooterImage(): void
+    {
+        $url = $this->getPluginAssetUrl(self::FOOTER_IMAGE_RELATIVE_PATH);
+        if (!$url) {
+            return;
+        }
+        echo '<div class="apify-events-page-footer"><img src="' . esc_url($url) . '" alt="' . esc_attr__('Plugin footer', 'apify-events-to-posts') . '" /></div>';
+    }
+
+    private function getPluginAssetUrl(string $relativePath): ?string
+    {
+        if (!defined('APIFY_EVENTS_PLUGIN_FILE')) {
+            return null;
+        }
+        $absPath = plugin_dir_path(APIFY_EVENTS_PLUGIN_FILE) . ltrim($relativePath, '/');
+        if (!file_exists($absPath)) {
+            return null;
+        }
+        return plugins_url(ltrim($relativePath, '/'), APIFY_EVENTS_PLUGIN_FILE);
     }
 
     /**
