@@ -7,14 +7,16 @@
  * - Utility classes for the informational panels rendered by `Settings`.
  */
 
-body.settings_page_apify-events {
+body.settings_page_apify-events,
+body.toplevel_page_apify-events {
     --apify-accent: #5cb3b4;
     --apify-accent-hover: #4aa3a4;
     --apify-accent-active: #3c9495;
 }
 
 /* Remove default WP .wrap top margin so the header image touches the top */
-body.settings_page_apify-events .wrap {
+body.settings_page_apify-events .wrap,
+body.toplevel_page_apify-events .wrap {
     margin-top: 0;
 }
 
@@ -48,7 +50,8 @@ body.settings_page_apify-events .wrap {
     z-index: 998;
 }
 
-body.settings_page_apify-events .apify-events-footer-actions {
+body.settings_page_apify-events .apify-events-footer-actions,
+body.toplevel_page_apify-events .apify-events-footer-actions {
     display: flex;
     justify-content: flex-start;
     padding: 10px 20px;
@@ -56,7 +59,8 @@ body.settings_page_apify-events .apify-events-footer-actions {
     border-top: 0;
 }
 
-body.settings_page_apify-events .apify-events-footer-actions.is-hidden {
+body.settings_page_apify-events .apify-events-footer-actions.is-hidden,
+body.toplevel_page_apify-events .apify-events-footer-actions.is-hidden {
     display: none;
 }
 
@@ -176,7 +180,9 @@ body.settings_page_apify-events .apify-events-footer-actions.is-hidden {
 
 /* Button styling */
 body.settings_page_apify-events .apify-events-settings .button.button-primary,
-body.settings_page_apify-events #apify-run-now.button.button-primary {
+body.settings_page_apify-events #apify-run-now.button.button-primary,
+body.toplevel_page_apify-events .apify-events-settings .button.button-primary,
+body.toplevel_page_apify-events #apify-run-now.button.button-primary {
     background: var(--apify-accent);
     border-color: var(--apify-accent);
     color: #fff;
@@ -185,25 +191,32 @@ body.settings_page_apify-events #apify-run-now.button.button-primary {
 }
 
 body.settings_page_apify-events .apify-events-settings .button.button-primary:hover,
-body.settings_page_apify-events #apify-run-now.button.button-primary:hover {
+body.settings_page_apify-events #apify-run-now.button.button-primary:hover,
+body.toplevel_page_apify-events .apify-events-settings .button.button-primary:hover,
+body.toplevel_page_apify-events #apify-run-now.button.button-primary:hover {
     background: var(--apify-accent-hover);
     border-color: var(--apify-accent-hover);
     color: #fff;
 }
 
 body.settings_page_apify-events .apify-events-settings .button.button-primary:focus,
-body.settings_page_apify-events #apify-run-now.button.button-primary:focus {
+body.settings_page_apify-events #apify-run-now.button.button-primary:focus,
+body.toplevel_page_apify-events .apify-events-settings .button.button-primary:focus,
+body.toplevel_page_apify-events #apify-run-now.button.button-primary:focus {
     box-shadow: 0 0 0 1px #fff, 0 0 0 3px rgba(92, 179, 180, 0.45);
 }
 
 body.settings_page_apify-events .apify-events-settings .button.button-primary:active,
-body.settings_page_apify-events #apify-run-now.button.button-primary:active {
+body.settings_page_apify-events #apify-run-now.button.button-primary:active,
+body.toplevel_page_apify-events .apify-events-settings .button.button-primary:active,
+body.toplevel_page_apify-events #apify-run-now.button.button-primary:active {
     background: var(--apify-accent-active);
     border-color: var(--apify-accent-active);
 }
 
 /* Ensure primary buttons are themed everywhere on this plugin page (incl. footer save) */
-body.settings_page_apify-events .button.button-primary {
+body.settings_page_apify-events .button.button-primary,
+body.toplevel_page_apify-events .button.button-primary {
     background: var(--apify-accent);
     border-color: var(--apify-accent);
     color: #fff;
@@ -211,23 +224,27 @@ body.settings_page_apify-events .button.button-primary {
     box-shadow: none;
 }
 
-body.settings_page_apify-events .button.button-primary:hover {
+body.settings_page_apify-events .button.button-primary:hover,
+body.toplevel_page_apify-events .button.button-primary:hover {
     background: var(--apify-accent-hover);
     border-color: var(--apify-accent-hover);
     color: #fff;
 }
 
-body.settings_page_apify-events .button.button-primary:focus {
+body.settings_page_apify-events .button.button-primary:focus,
+body.toplevel_page_apify-events .button.button-primary:focus {
     box-shadow: 0 0 0 1px #fff, 0 0 0 3px rgba(92, 179, 180, 0.45);
 }
 
-body.settings_page_apify-events .button.button-primary:active {
+body.settings_page_apify-events .button.button-primary:active,
+body.toplevel_page_apify-events .button.button-primary:active {
     background: var(--apify-accent-active);
     border-color: var(--apify-accent-active);
 }
 
 /* "Test Connection" button */
-body.settings_page_apify-events #apify-test-connection.button {
+body.settings_page_apify-events #apify-test-connection.button,
+body.toplevel_page_apify-events #apify-test-connection.button {
     background: #fff;
     border-color: var(--apify-accent);
     color: var(--apify-accent);
@@ -235,17 +252,20 @@ body.settings_page_apify-events #apify-test-connection.button {
     box-shadow: none;
 }
 
-body.settings_page_apify-events #apify-test-connection.button:hover {
+body.settings_page_apify-events #apify-test-connection.button:hover,
+body.toplevel_page_apify-events #apify-test-connection.button:hover {
     background: rgba(92, 179, 180, 0.12);
     border-color: var(--apify-accent-hover);
     color: var(--apify-accent-hover);
 }
 
-body.settings_page_apify-events #apify-test-connection.button:focus {
+body.settings_page_apify-events #apify-test-connection.button:focus,
+body.toplevel_page_apify-events #apify-test-connection.button:focus {
     box-shadow: 0 0 0 1px #fff, 0 0 0 3px rgba(92, 179, 180, 0.45);
 }
 
-body.settings_page_apify-events #apify-test-connection.button:active {
+body.settings_page_apify-events #apify-test-connection.button:active,
+body.toplevel_page_apify-events #apify-test-connection.button:active {
     background: rgba(92, 179, 180, 0.18);
     border-color: var(--apify-accent-active);
     color: var(--apify-accent-active);
@@ -258,7 +278,8 @@ body.settings_page_apify-events #apify-test-connection.button:active {
 }
 
 /* START HERE block */
-body.settings_page_apify-events .apify-start-here {
+body.settings_page_apify-events .apify-start-here,
+body.toplevel_page_apify-events .apify-start-here {
     background: rgba(92, 179, 180, 0.12);
     border-left: 4px solid var(--apify-accent);
     padding: 12px;
@@ -267,16 +288,19 @@ body.settings_page_apify-events .apify-start-here {
     color: var(--apify-accent);
 }
 
-body.settings_page_apify-events .apify-start-here strong {
+body.settings_page_apify-events .apify-start-here strong,
+body.toplevel_page_apify-events .apify-start-here strong {
     color: var(--apify-accent);
 }
 
-body.settings_page_apify-events .apify-accent-text {
+body.settings_page_apify-events .apify-accent-text,
+body.toplevel_page_apify-events .apify-accent-text {
     color: var(--apify-accent);
 }
 
 /* Top "FREE Version" notice accent bar */
-body.settings_page_apify-events .notice.apify-events-notice {
+body.settings_page_apify-events .notice.apify-events-notice,
+body.toplevel_page_apify-events .notice.apify-events-notice {
     border-left-color: var(--apify-accent);
 }
 

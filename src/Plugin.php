@@ -72,6 +72,18 @@ class Plugin
      */
     public function addAdminMenu()
     {
+        // Top-level menu (sidebar)
+        add_menu_page(
+            __('Event Scraper DvdA', 'apify-events-to-posts'),
+            __('Event Scraper DvdA', 'apify-events-to-posts'),
+            'manage_options',
+            'apify-events',
+            [$this, 'renderSettingsPage'],
+            'dashicons-calendar-alt',
+            58
+        );
+
+        // Also keep the Settings → submenu entry for convenience
         add_options_page(
             __('Events to Posts Scraper', 'apify-events-to-posts'),
             __('Events Scraper', 'apify-events-to-posts'),
@@ -96,7 +108,7 @@ class Plugin
      */
     public function enqueueAdminScripts($hook)
     {
-        if ($hook !== 'settings_page_apify-events') {
+        if ($hook !== 'settings_page_apify-events' && $hook !== 'toplevel_page_apify-events') {
             return;
         }
 
