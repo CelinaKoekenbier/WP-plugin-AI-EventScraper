@@ -59,8 +59,9 @@ class Plugin
             add_filter('plugin_action_links_' . plugin_basename(APIFY_EVENTS_PLUGIN_FILE), [$this, 'addPluginActionLinks']);
         }
 
-        // Cron hooks
-        add_action('apify_events_monthly', [$this, 'runMonthlyEvent']);
+        // Cron hooks — weekly run (target week = 4 weeks ahead)
+        add_action('apify_events_weekly', [$this, 'runWeeklyEvent']);
+        add_action('apify_events_monthly', [$this, 'runMonthlyEvent']); // legacy, kept for backward compat
         
         // Settings hooks
         add_action('admin_init', [$this, 'registerSettings']);
@@ -138,7 +139,7 @@ class Plugin
         add_settings_section(
             'apify_events_general',
             __('General Settings', 'apify-events-to-posts'),
-            null,
+            [$this, 'renderGeneralSectionDescription'],
             'apify_events_settings'
         );
 
@@ -196,6 +197,15 @@ class Plugin
             'apify_events_general'
         );
 
+        // Max URLs per domain (diversify sources)
+        add_settings_field(
+            'max_urls_per_domain',
+            __('Max URLs per domain', 'apify-events-to-posts'),
+            [$this, 'renderMaxUrlsPerDomainField'],
+            'apify_events_settings',
+            'apify_events_general'
+        );
+
         // Excluded domains
         add_settings_field(
             'excluded_domains',
@@ -214,20 +224,11 @@ class Plugin
             'apify_events_general'
         );
 
-        // Google API Key
+        // SerpAPI Key (web search — 100 free/month)
         add_settings_field(
-            'google_api_key',
-            __('Google API Key (Free)', 'apify-events-to-posts'),
-            [$this, 'renderGoogleApiKeyField'],
-            'apify_events_settings',
-            'apify_events_general'
-        );
-
-        // Google CSE ID
-        add_settings_field(
-            'google_cse_id',
-            __('Google CSE ID (Free)', 'apify-events-to-posts'),
-            [$this, 'renderGoogleCseIdField'],
+            'serpapi_api_key',
+            __('SerpAPI Key (web search)', 'apify-events-to-posts'),
+            [$this, 'renderSerpApiKeyField'],
             'apify_events_settings',
             'apify_events_general'
         );
@@ -237,6 +238,15 @@ class Plugin
             'test_mode',
             __('Test Mode', 'apify-events-to-posts'),
             [$this, 'renderTestModeField'],
+            'apify_events_settings',
+            'apify_events_general'
+        );
+
+        // Restrict to target week
+        add_settings_field(
+            'restrict_to_target_week',
+            __('Restrict to target week only', 'apify-events-to-posts'),
+            [$this, 'renderRestrictToTargetWeekField'],
             'apify_events_settings',
             'apify_events_general'
         );
@@ -253,12 +263,8 @@ class Plugin
             $sanitized['apify_token'] = sanitize_text_field($input['apify_token']);
         }
         
-        if (isset($input['google_api_key'])) {
-            $sanitized['google_api_key'] = sanitize_text_field($input['google_api_key']);
-        }
-        
-        if (isset($input['google_cse_id'])) {
-            $sanitized['google_cse_id'] = sanitize_text_field($input['google_cse_id']);
+        if (isset($input['serpapi_api_key'])) {
+            $sanitized['serpapi_api_key'] = sanitize_text_field($input['serpapi_api_key']);
         }
         
         if (isset($input['manual_urls'])) {
@@ -281,6 +287,10 @@ class Plugin
             $sanitized['max_results_per_query'] = absint($input['max_results_per_query']);
         }
         
+        if (isset($input['max_urls_per_domain'])) {
+            $sanitized['max_urls_per_domain'] = max(1, absint($input['max_urls_per_domain']));
+        }
+        
         if (isset($input['excluded_domains'])) {
             $sanitized['excluded_domains'] = sanitize_textarea_field($input['excluded_domains']);
         }
@@ -297,6 +307,10 @@ class Plugin
             $sanitized['test_mode'] = (bool) $input['test_mode'];
         }
         
+        if (isset($input['restrict_to_target_week'])) {
+            $sanitized['restrict_to_target_week'] = (bool) $input['restrict_to_target_week'];
+        }
+        
         return $sanitized;
     }
 
@@ -307,6 +321,16 @@ class Plugin
     {
         $settings = new Settings();
         $settings->render();
+    }
+
+    /**
+     * General section description (timezone hint for "Last modified" on posts).
+     */
+    public function renderGeneralSectionDescription()
+    {
+        echo '<p class="description">';
+        echo esc_html__('If "Last modified" on imported posts is 1 hour behind your local time, set Settings → General → Timezone to "Amsterdam" (Europa/Amsterdam).', 'apify-events-to-posts');
+        echo '</p>';
     }
 
     /**
@@ -341,7 +365,7 @@ class Plugin
         ]);
         
         echo '<textarea name="apify_events_options[queries]" rows="5" cols="50" class="large-text">' . esc_textarea($queries) . '</textarea>';
-        echo '<p class="description">' . __('One query per line. Use <VOLGEND_MAAND_JAAR> placeholder for next month/year.', 'apify-events-to-posts') . '</p>';
+        echo '<p class="description">' . __('One query per line. Placeholders: <code>&lt;VOLGEND_MAAND_JAAR&gt;</code> = next month/year, <code>&lt;TARGET_WEEK&gt;</code> = target week (e.g. 6-12 april 2026, 4 weeks ahead).', 'apify-events-to-posts') . '</p>';
     }
 
     /**
@@ -381,6 +405,17 @@ class Plugin
     }
 
     /**
+     * Render max URLs per domain field
+     */
+    public function renderMaxUrlsPerDomainField()
+    {
+        $options = get_option('apify_events_options', []);
+        $max = $options['max_urls_per_domain'] ?? 10;
+        echo '<input type="number" name="apify_events_options[max_urls_per_domain]" value="' . esc_attr($max) . '" class="small-text" min="1" max="50" />';
+        echo '<p class="description">' . __('Cap URLs per domain so one site (e.g. groeneagenda.nl) does not dominate. Manual URLs are always included.', 'apify-events-to-posts') . '</p>';
+    }
+
+    /**
      * Render excluded domains field
      */
     public function renderExcludedDomainsField()
@@ -407,27 +442,14 @@ class Plugin
     }
 
     /**
-     * Render Google API key field
+     * Render SerpAPI key field
      */
-    public function renderGoogleApiKeyField()
+    public function renderSerpApiKeyField()
     {
         $options = get_option('apify_events_options', []);
-        $google_api_key = $options['google_api_key'] ?? '';
-        
-        echo '<input type="text" name="apify_events_options[google_api_key]" value="' . esc_attr($google_api_key) . '" class="regular-text" />';
-        echo '<p class="description">' . __('Google Custom Search API key (free 100 searches/day). <a href="https://developers.google.com/custom-search/v1/overview" target="_blank">Get one here</a>', 'apify-events-to-posts') . '</p>';
-    }
-
-    /**
-     * Render Google CSE ID field
-     */
-    public function renderGoogleCseIdField()
-    {
-        $options = get_option('apify_events_options', []);
-        $google_cse_id = $options['google_cse_id'] ?? '';
-        
-        echo '<input type="text" name="apify_events_options[google_cse_id]" value="' . esc_attr($google_cse_id) . '" class="regular-text" />';
-        echo '<p class="description">' . __('Google Custom Search Engine ID. <a href="https://cse.google.com/cse/all" target="_blank">Create one here</a>', 'apify-events-to-posts') . '</p>';
+        $key = $options['serpapi_api_key'] ?? '';
+        echo '<input type="text" name="apify_events_options[serpapi_api_key]" value="' . esc_attr($key) . '" class="regular-text" />';
+        echo '<p class="description">' . __('API key for web search (Google results via SerpAPI). <a href="https://serpapi.com/users/sign_up" target="_blank">Registrarse</a> — 100 búsquedas gratis al mes.', 'apify-events-to-posts') . '</p>';
     }
 
     /**
@@ -444,8 +466,8 @@ class Plugin
         echo '</div>';
         
         echo '<textarea name="apify_events_options[manual_urls]" rows="8" cols="50" class="large-text" placeholder="https://www.natuurmonumenten.nl/agenda&#10;https://www.ivn.nl/agenda&#10;https://www.staatsbosbeheer.nl/evenementen">' . esc_textarea($manual_urls) . '</textarea>';
-        echo '<p class="description">' . __('✅ One URL per line. The plugin will scrape these pages and extract event data automatically.', 'apify-events-to-posts') . '</p>';
-        echo '<p class="description"><strong>' . __('Try these example URLs:', 'apify-events-to-posts') . '</strong><br>';
+        echo '<p class="description">' . __('✅ One URL per line. If empty, the plugin uses default agenda URLs (natuurmonumenten, ivn, staatsbosbeheer).', 'apify-events-to-posts') . '</p>';
+        echo '<p class="description"><strong>' . __('Example URLs to try:', 'apify-events-to-posts') . '</strong><br>';
         echo 'https://www.natuurmonumenten.nl/agenda<br>';
         echo 'https://www.ivn.nl/agenda<br>';
         echo 'https://www.staatsbosbeheer.nl/evenementen</p>';
@@ -460,6 +482,18 @@ class Plugin
         $test_mode = $options['test_mode'] ?? false;
         
         echo '<label><input type="checkbox" name="apify_events_options[test_mode]" value="1" ' . checked($test_mode, true, false) . ' /> ' . __('Enable test mode (don\'t save posts)', 'apify-events-to-posts') . '</label>';
+    }
+
+    /**
+     * Render restrict to target week field
+     */
+    public function renderRestrictToTargetWeekField()
+    {
+        $options = get_option('apify_events_options', []);
+        $restrict = $options['restrict_to_target_week'] ?? false;
+        echo '<label><input type="checkbox" name="apify_events_options[restrict_to_target_week]" value="1" ' . checked($restrict, true, false) . ' /> ';
+        echo __('Solo importar eventos de la semana objetivo (4 semanas adelante)', 'apify-events-to-posts') . '</label>';
+        echo '<p class="description">' . __('Si está desactivado, se importan todos los eventos válidos (fechas futuras). Actívalo para limitar a la semana concreta.', 'apify-events-to-posts') . '</p>';
     }
 
     /**
@@ -512,12 +546,20 @@ class Plugin
     }
 
     /**
-     * Handle AJAX test request
+     * Handle AJAX test request — test SerpAPI
      */
     public function handleTest()
     {
-        error_log('Apify Events: Test AJAX handler called');
-        wp_send_json_success(['message' => 'Test successful', 'timestamp' => current_time('mysql')]);
+        check_ajax_referer('apify_events_nonce', 'nonce');
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(['message' => 'Insufficient permissions']);
+        }
+        $client = new FreeSearchClient();
+        $result = $client->testSerpApi();
+        if ($result['success']) {
+            wp_send_json_success(['message' => $result['message']]);
+        }
+        wp_send_json_error(['message' => $result['message']]);
     }
 
     /**
@@ -541,7 +583,16 @@ class Plugin
     }
 
     /**
-     * Run monthly event
+     * Run weekly event (target = week 4 weeks ahead)
+     */
+    public function runWeeklyEvent()
+    {
+        $runner = new Runner();
+        $runner->run();
+    }
+
+    /**
+     * Run monthly event (legacy)
      */
     public function runMonthlyEvent()
     {
@@ -560,7 +611,12 @@ class Plugin
             wp_create_category('Evenementen');
         }
 
-        // Schedule monthly cron
+        // Schedule weekly cron (Monday 9:00 Amsterdam — target week = 4 weeks ahead)
+        if (!wp_next_scheduled('apify_events_weekly')) {
+            $next_run = self::getNextWeeklyRunTime();
+            wp_schedule_event($next_run, 'weekly', 'apify_events_weekly');
+        }
+        // Legacy: keep monthly if already set (do not add new)
         if (!wp_next_scheduled('apify_events_monthly')) {
             $next_run = self::getNextMonthlyRunTime();
             wp_schedule_event($next_run, 'monthly', 'apify_events_monthly');
@@ -579,6 +635,7 @@ class Plugin
             'language_code' => 'nl',
             'country_code' => 'nl',
             'max_results_per_query' => 20,
+            'max_urls_per_domain' => 10,
             'excluded_domains' => '',
             'min_image_width' => 300,
             'min_image_height' => 200,
@@ -593,8 +650,25 @@ class Plugin
      */
     public static function deactivate()
     {
-        // Clear scheduled cron
+        wp_clear_scheduled_hook('apify_events_weekly');
         wp_clear_scheduled_hook('apify_events_monthly');
+    }
+
+    /**
+     * Next weekly run: Monday 9:00 Europe/Amsterdam
+     */
+    private static function getNextWeeklyRunTime()
+    {
+        $tz = new \DateTimeZone('Europe/Amsterdam');
+        $now = new \DateTime('now', $tz);
+        $next = (clone $now)->setTime(9, 0, 0);
+        $dayOfWeek = (int) $now->format('N'); // 1=Mon .. 7=Sun
+        if ($dayOfWeek === 1 && $now->getTimestamp() < $next->getTimestamp()) {
+            return $next->getTimestamp(); // today Monday before 9:00
+        }
+        $daysToNextMonday = $dayOfWeek === 1 ? 7 : (8 - $dayOfWeek);
+        $next->modify("+{$daysToNextMonday} days");
+        return $next->getTimestamp();
     }
 
     /**

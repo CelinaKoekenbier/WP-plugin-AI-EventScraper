@@ -157,7 +157,7 @@ class Extractor
         libxml_clear_errors();
         
         $xpath = new \DOMXPath($dom);
-        $link_query = "//a[contains(@href,'/agenda') or contains(@href,'/evenement') or contains(@href,'/event') or contains(@href,'/activiteit') or contains(@href,'/activiteiten')]";
+        $link_query = "//a[contains(@href,'/agenda') or contains(@href,'/evenement') or contains(@href,'/event') or contains(@href,'/activiteit') or contains(@href,'/activiteiten') or contains(@href,'/excursie') or contains(@href,'/wandeling') or contains(@href,'/workshop')]";
         $nodes = $xpath->query($link_query);
         
         if (!$nodes || $nodes->length === 0) {
@@ -267,8 +267,8 @@ class Extractor
                     continue;
                 }
                 
-                // Focus on likely event detail slugs
-                if (preg_match('~/(agenda|event|evenement|activiteiten|activiteit|excursie|wandeling)[^/]*(/|$)~i', $absolute)) {
+                // Focus on likely event detail slugs (Dutch + English event terms)
+                if (preg_match('~/(agenda|event|evenement|activiteiten|activiteit|excursie|wandeling|workshop|cursus|lezing|events)[^/]*(/|$)~i', $absolute)) {
                     $links[] = $absolute;
                 }
             }

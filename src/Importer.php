@@ -141,12 +141,23 @@ class Importer
         // Build post content
         $content = $this->buildPostContent($event_data, $description);
         
+        // Use site timezone so "Last modified" matches when the import ran.
+        // If you see a 1-hour difference, set Settings → General → Timezone to "Europe/Amsterdam".
+        $wp_tz = function_exists('wp_timezone') ? wp_timezone() : new \DateTimeZone('Europe/Amsterdam');
+        $now_utc = new \DateTime('now', new \DateTimeZone('UTC'));
+        $now_local = clone $now_utc;
+        $now_local->setTimezone($wp_tz);
+        $post_date_gmt = $now_utc->format('Y-m-d H:i:s');
+        $post_date_local = $now_local->format('Y-m-d H:i:s');
+        
         $post_data = [
             'post_title' => $event_data['title'],
             'post_content' => $content,
             'post_status' => 'draft',
             'post_type' => 'post',
             'post_author' => 1, // Admin user
+            'post_date' => $post_date_local,
+            'post_date_gmt' => $post_date_gmt,
             'meta_input' => [
                 'apify_source_url' => $event_data['url'],
                 'apify_source_hash' => Utils::generateHash(Utils::getCanonicalUrl($event_data['url'])),

@@ -6,7 +6,7 @@ namespace ApifyEvents;
  * Event discovery runner.
  *
  * Coordinates the end-to-end workflow for both manual runs and cron jobs:
- *  1. Gather candidate URLs (Google Custom Search, manual URLs, RSS fallbacks).
+ *  1. Gather candidate URLs (SerpAPI web search, manual URLs, RSS fallbacks).
  *  2. Scrape pages (directly or via Apify) and extract potential events.
  *  3. Deduplicate, validate, import posts, and record detailed statistics.
  *
@@ -79,10 +79,14 @@ class Runner
     }
 
     /**
-     * Prepare search queries with next month placeholder
+     * Prepare search queries: replace <VOLGEND_MAAND_JAAR> and <TARGET_WEEK>
+     * TARGET_WEEK = week 4 weeks ahead (e.g. "6-12 april 2026") for weekly runs
      */
-    private function prepareQueries($queries_text, $next_month)
+    private function prepareQueries($queries_text, $next_month, $target_week = null)
     {
+        if ($target_week === null) {
+            $target_week = Utils::getTargetWeekString();
+        }
         $queries = array_filter(array_map('trim', explode("\n", $queries_text)));
         $prepared_queries = [];
         
@@ -91,8 +95,8 @@ class Runner
                 continue;
             }
             
-            // Replace placeholder
             $query = str_replace('<VOLGEND_MAAND_JAAR>', $next_month, $query);
+            $query = str_replace('<TARGET_WEEK>', $target_week, $query);
             $prepared_queries[] = $query;
         }
         
@@ -244,6 +248,39 @@ class Runner
     }
 
     /**
+     * Limit candidate list to at most N URLs per domain (keeps source diversity).
+     *
+     * @param array $results Array of items with 'url' key
+     * @param int   $maxPerDomain Max URLs to keep per host
+     * @return array Filtered list, order preserved
+     */
+    private function limitUrlsPerDomain(array $results, $maxPerDomain = 10)
+    {
+        if ($maxPerDomain < 1) {
+            return $results;
+        }
+        $counts = [];
+        $out = [];
+        foreach ($results as $item) {
+            $url = $item['url'] ?? '';
+            if (empty($url)) {
+                continue;
+            }
+            $host = parse_url($url, PHP_URL_HOST);
+            if (!$host) {
+                $out[] = $item;
+                continue;
+            }
+            $host = strtolower($host);
+            $counts[$host] = ($counts[$host] ?? 0) + 1;
+            if ($counts[$host] <= $maxPerDomain) {
+                $out[] = $item;
+            }
+        }
+        return $out;
+    }
+
+    /**
      * Get domain statistics
      */
     public function getDomainStats()
@@ -304,15 +341,20 @@ class Runner
     }
 
     /**
-     * Run using free method (Google Custom Search + web scraping)
+     * Run using free method (SerpAPI web search + scraping)
      */
     private function runFreeMethod($options, &$stats, &$errors, &$skipped_reasons)
     {
         $free_client = new FreeSearchClient();
         
-        // Prepare queries with next month
+        // Target week = week that starts 4 weeks from today (for weekly runs)
+        list($target_week_start, $target_week_end) = Utils::getTargetWeekRange();
+        $target_week_str = Utils::getTargetWeekString();
+        Utils::log("Target week (events to import): {$target_week_str}", 'info');
+        
+        // Prepare queries: <VOLGEND_MAAND_JAAR> and <TARGET_WEEK>
         $next_month = Utils::getNextMonthString();
-        $queries = $this->prepareQueries($options['queries'], $next_month);
+        $queries = $this->prepareQueries($options['queries'], $next_month, $target_week_str);
         
         if (empty($queries)) {
             throw new \Exception('No search queries configured');
@@ -325,29 +367,34 @@ class Runner
         
         $search_results = [];
         
-        // Try Google Custom Search if configured
-        if ($free_client->hasGoogleApi()) {
+        // Try SerpAPI web search if configured
+        if ($free_client->hasSearchApi()) {
             try {
                 $search_results = $free_client->searchDutchEvents($queries, $options['max_results_per_query']);
                 $stats['discovered'] = count($search_results);
-                Utils::log("Found {$stats['discovered']} URLs via Google Custom Search", 'info');
+                Utils::log("Found {$stats['discovered']} URLs via SerpAPI", 'info');
             } catch (\Exception $e) {
-                $errors[] = 'Google Custom Search failed: ' . $e->getMessage();
-                Utils::log('Google Custom Search failed: ' . $e->getMessage(), 'error');
+                $errors[] = $e->getMessage();
+                Utils::log('SerpAPI failed: ' . $e->getMessage(), 'error');
             }
         }
         
-        // Add manual URLs
+        // Add manual URLs first so they are not dropped by the per-domain cap
         $manual_urls = $free_client->getManualUrls();
         if (!empty($manual_urls)) {
-            $search_results = array_merge($search_results, $manual_urls);
+            $search_results = array_merge($manual_urls, $search_results);
             Utils::log("Added " . count($manual_urls) . " manual URLs", 'info');
         }
         
+        // Limit URLs per domain so one site (e.g. groeneagenda.nl) doesn't dominate
+        $max_per_domain = isset($options['max_urls_per_domain']) ? max(1, (int) $options['max_urls_per_domain']) : 10;
+        $search_results = $this->limitUrlsPerDomain($search_results, $max_per_domain);
+        
         $stats['discovered'] = count($search_results);
+        $stats['sample_urls'] = array_slice(array_map(function ($r) { return $r['url'] ?? ''; }, $search_results), 0, 5);
         
         if (empty($search_results)) {
-            throw new \Exception('No candidate URLs found. Please configure Google Custom Search API or add manual URLs.');
+            throw new \Exception('No candidate URLs found. Please configure SerpAPI key or add manual URLs.');
         }
         
         // Step 2: Scrape pages
@@ -414,6 +461,22 @@ class Runner
         }
         
         Utils::log("Parsed {$stats['parsed']} valid events", 'info');
+        
+        // Optionally keep only events in the target week (4 weeks ahead)
+        $restrict = $options['restrict_to_target_week'] ?? false;
+        if ($restrict) {
+            $before = count($valid_events);
+            $valid_events = array_values(array_filter($valid_events, function ($e) use ($target_week_start, $target_week_end) {
+                $d = $e['date_start'] ?? 0;
+                return $d >= $target_week_start && $d <= $target_week_end;
+            }));
+            $removed = $before - count($valid_events);
+            if ($removed > 0) {
+                Utils::log("Filtered to target week: {$removed} events outside {$target_week_str} removed", 'info');
+            }
+        } else {
+            Utils::log("Target week: {$target_week_str} (not restricting — importing all valid events)", 'info');
+        }
         
         // Sort by confidence and limit to 10
         usort($valid_events, function($a, $b) {

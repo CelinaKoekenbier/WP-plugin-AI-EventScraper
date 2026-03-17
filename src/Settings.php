@@ -66,9 +66,10 @@ class Settings
                         <p><?php _e('This plugin automatically discovers Dutch events using Apify and saves them as draft posts.', 'apify-events-to-posts'); ?></p>
                         <p><strong><?php _e('Next scheduled run:', 'apify-events-to-posts'); ?></strong><br>
                         <?php
-                        $next_run = wp_next_scheduled('apify_events_monthly');
+                        $next_run = wp_next_scheduled('apify_events_weekly') ?: wp_next_scheduled('apify_events_monthly');
                         if ($next_run) {
                             echo esc_html(wp_date(get_option('date_format') . ' ' . get_option('time_format'), $next_run));
+                            echo ' <small>(' . (wp_next_scheduled('apify_events_weekly') ? __('weekly', 'apify-events-to-posts') : __('monthly', 'apify-events-to-posts')) . ')</small>';
                         } else {
                             _e('Not scheduled', 'apify-events-to-posts');
                         }
@@ -191,6 +192,12 @@ class Settings
             $formatted_log .= "- Events parsed: " . ($stats['parsed'] ?? 0) . "\n";
             $formatted_log .= "- Posts imported: " . ($stats['imported'] ?? 0) . "\n";
             $formatted_log .= "- Posts skipped: " . ($stats['skipped'] ?? 0) . "\n";
+            if (!empty($stats['sample_urls'])) {
+                $formatted_log .= "\nURLs procesadas (muestra):\n";
+                foreach ($stats['sample_urls'] as $u) {
+                    if ($u) $formatted_log .= "- " . $u . "\n";
+                }
+            }
         }
         
         if (isset($log_data['errors']) && !empty($log_data['errors'])) {

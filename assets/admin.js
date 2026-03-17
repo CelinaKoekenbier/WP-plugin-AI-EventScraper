@@ -157,9 +157,10 @@ jQuery(document).ready(function($) {
             success: function(response) {
                 console.log('Apify Events: Test response:', response);
                 if (response.success) {
-                    $status.addClass('success').text('Connection successful! ' + response.data.message);
+                    $status.addClass('success').text('Connection successful! ' + (response.data && response.data.message ? response.data.message : ''));
                 } else {
-                    $status.addClass('error').text('Test failed: ' + (response.data || 'Unknown error'));
+                    var msg = (response.data && response.data.message) ? response.data.message : (response.data || 'Unknown error');
+                    $status.addClass('error').text('Test failed: ' + msg);
                 }
             },
             error: function(xhr, status, error) {

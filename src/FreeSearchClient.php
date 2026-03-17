@@ -3,27 +3,18 @@
 namespace ApifyEvents;
 
 /**
- * Free search client using Google Custom Search API and HTML scraping.
+ * Search client using SerpAPI (Google results) and HTML scraping.
  *
- * Responsibilities:
- * - Resolve settings options (API keys, manual URLs, excluded domains).
- * - Call Google Custom Search (100 free requests/day) and normalize results.
- * - Fetch arbitrary pages via WordPress HTTP API (with simple throttling).
- * - Provide RSS fallbacks and manual-URL ingestion for deterministic testing.
- *
- * Acts as the data source provider for `Runner::runFreeMethod()`.
+ * - SerpAPI: web search for event URLs (100 free searches/month).
+ * - Manual URLs + default agenda URLs when no API key.
+ * - Scrape pages via WordPress HTTP API.
  */
 class FreeSearchClient
 {
     /**
-     * Google Custom Search API key
+     * SerpAPI key
      */
-    private $google_api_key;
-    
-    /**
-     * Google Custom Search Engine ID
-     */
-    private $google_cse_id;
+    private $serpapi_api_key;
 
     /**
      * Constructor
@@ -31,100 +22,101 @@ class FreeSearchClient
     public function __construct()
     {
         $options = Utils::getOptions();
-        $this->google_api_key = $options['google_api_key'] ?? '';
-        $this->google_cse_id = $options['google_cse_id'] ?? '';
+        $this->serpapi_api_key = $options['serpapi_api_key'] ?? '';
     }
 
     /**
-     * Check if Google API is configured
+     * Check if SerpAPI is configured
      */
-    public function hasGoogleApi()
+    public function hasSearchApi()
     {
-        return !empty($this->google_api_key) && !empty($this->google_cse_id);
+        return !empty($this->serpapi_api_key);
     }
 
     /**
-     * Search for Dutch events using Google Custom Search
+     * Search for Dutch events using SerpAPI (Google results)
      */
     public function searchDutchEvents($queries, $max_results = 20)
     {
-        if (!$this->hasGoogleApi()) {
-            throw new \Exception('Google Custom Search API not configured');
+        if (!$this->hasSearchApi()) {
+            throw new \Exception('SerpAPI key not configured. Add your key in Settings → Apify Events (100 free searches/month).');
         }
 
         $all_results = [];
-        
+        $last_error = null;
+        $per_query = min(10, max(1, (int) ceil($max_results / max(1, count($queries)))));
+
         foreach ($queries as $query) {
             try {
-                $results = $this->googleCustomSearch($query, min(10, $max_results));
+                $results = $this->serpApiSearch($query, $per_query);
                 $all_results = array_merge($all_results, $results);
-                
-                // Rate limiting - wait 1 second between requests
-                sleep(1);
-                
+                sleep(1); // rate limit
             } catch (\Exception $e) {
-                Utils::log('Google search failed for query: ' . $query . ' - ' . $e->getMessage(), 'error');
+                $last_error = $e->getMessage();
+                Utils::log('SerpAPI failed for query: ' . $query . ' - ' . $last_error, 'error');
                 continue;
             }
         }
-        
-        // Remove duplicates and limit results
+
+        if (empty($all_results)) {
+            if ($last_error) {
+                throw new \Exception('SerpAPI failed: ' . $last_error);
+            }
+            throw new \Exception('SerpAPI returned no results. Try different search queries.');
+        }
+
         $unique_results = $this->removeDuplicateUrls($all_results);
         return array_slice($unique_results, 0, $max_results);
     }
 
     /**
-     * Perform Google Custom Search
+     * One SerpAPI request (Google search)
+     * @see https://serpapi.com/search-api
      */
-    private function googleCustomSearch($query, $num_results = 10)
+    private function serpApiSearch($query, $num = 10)
     {
-        $url = 'https://www.googleapis.com/customsearch/v1';
-        
+        $url = 'https://serpapi.com/search';
         $params = [
-            'key' => $this->google_api_key,
-            'cx' => $this->google_cse_id,
+            'engine' => 'google',
+            'api_key' => $this->serpapi_api_key,
             'q' => $query,
-            'num' => min($num_results, 10), // Google limits to 10 per request
-            'safe' => 'off',
-            'lr' => 'lang_nl', // Dutch language
-            'cr' => 'countryNL', // Netherlands country
+            'gl' => 'nl',
+            'hl' => 'nl',
+            'num' => min(10, max(1, (int) $num)),
         ];
-        
         $request_url = $url . '?' . http_build_query($params);
-        
+
         $response = wp_remote_get($request_url, [
             'timeout' => 30,
-            'headers' => [
-                'User-Agent' => 'WordPress Apify Events Plugin'
-            ]
+            'headers' => ['Accept' => 'application/json'],
         ]);
-        
+
         if (is_wp_error($response)) {
-            throw new \Exception('Google API request failed: ' . $response->get_error_message());
+            throw new \Exception('SerpAPI request failed: ' . $response->get_error_message());
         }
-        
-        $status_code = wp_remote_retrieve_response_code($response);
+
+        $status_code = (int) wp_remote_retrieve_response_code($response);
+        $body = wp_remote_retrieve_body($response);
+        $data = json_decode($body, true);
+
         if ($status_code !== 200) {
-            $body = wp_remote_retrieve_body($response);
-            throw new \Exception('Google API error ' . $status_code . ': ' . $body);
+            $msg = isset($data['error']) ? $data['error'] : substr($body, 0, 200);
+            throw new \Exception('SerpAPI error ' . $status_code . ': ' . $msg);
         }
-        
-        $data = json_decode(wp_remote_retrieve_body($response), true);
-        
-        if (!$data || !isset($data['items'])) {
+
+        if (empty($data['organic_results'])) {
             return [];
         }
-        
+
         $results = [];
-        foreach ($data['items'] as $item) {
+        foreach ($data['organic_results'] as $item) {
             $results[] = [
                 'title' => $item['title'] ?? '',
                 'url' => $item['link'] ?? '',
                 'snippet' => $item['snippet'] ?? '',
-                'source' => 'google_custom_search'
+                'source' => 'serpapi',
             ];
         }
-        
         return $results;
     }
 
@@ -136,43 +128,41 @@ class FreeSearchClient
         if (empty($url)) {
             return null;
         }
-        
-        // Check if URL should be excluded
         if (Utils::shouldExcludeUrl($url)) {
             return null;
         }
-        
+
         $response = wp_remote_get($url, [
             'timeout' => 30,
             'headers' => [
-                'User-Agent' => 'Mozilla/5.0 (compatible; WordPress Apify Events Plugin)',
+                'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
                 'Accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
                 'Accept-Language' => 'nl-NL,nl;q=0.9,en;q=0.8',
             ],
-            'sslverify' => false, // For local development
+            'sslverify' => false,
         ]);
-        
+
         if (is_wp_error($response)) {
             Utils::log('Failed to fetch URL: ' . $url . ' - ' . $response->get_error_message(), 'error');
             return null;
         }
-        
+
         $status_code = wp_remote_retrieve_response_code($response);
         if ($status_code !== 200) {
             Utils::log('HTTP error ' . $status_code . ' for URL: ' . $url, 'error');
             return null;
         }
-        
+
         $body = wp_remote_retrieve_body($response);
         if (empty($body)) {
             return null;
         }
-        
+
         return [
             'url' => $url,
             'html' => $body,
             'status_code' => $status_code,
-            'headers' => wp_remote_retrieve_headers($response)
+            'headers' => wp_remote_retrieve_headers($response),
         ];
     }
 
@@ -183,195 +173,76 @@ class FreeSearchClient
     {
         $seen_urls = [];
         $unique_results = [];
-        
         foreach ($results as $result) {
             $url = $result['url'] ?? '';
             $canonical_url = Utils::getCanonicalUrl($url);
-            
             if (!in_array($canonical_url, $seen_urls)) {
                 $seen_urls[] = $canonical_url;
                 $unique_results[] = $result;
             }
         }
-        
         return $unique_results;
     }
 
     /**
-     * Get Dutch event websites RSS feeds
+     * Default event agenda URLs (used when manual URLs empty)
      */
-    public function getRssFeeds()
-    {
-        $rss_feeds = [
-            'https://www.eventbrite.nl/d/netherlands/events/',
-            'https://www.meetup.com/find/events/?location=nl',
-            'https://www.facebook.com/events/',
-        ];
-        
-        $events = [];
-        
-        foreach ($rss_feeds as $feed_url) {
-            try {
-                $feed_events = $this->parseRssFeed($feed_url);
-                $events = array_merge($events, $feed_events);
-            } catch (\Exception $e) {
-                Utils::log('RSS feed failed: ' . $feed_url . ' - ' . $e->getMessage(), 'error');
-                continue;
-            }
-        }
-        
-        return $events;
-    }
+    private static $default_manual_urls = [
+        'https://www.natuurmonumenten.nl/agenda',
+        'https://www.ivn.nl/agenda',
+        'https://www.staatsbosbeheer.nl/activiteiten',
+    ];
 
     /**
-     * Parse RSS feed for events
-     */
-    private function parseRssFeed($feed_url)
-    {
-        $response = wp_remote_get($feed_url, [
-            'timeout' => 30,
-            'headers' => [
-                'User-Agent' => 'WordPress Apify Events Plugin'
-            ]
-        ]);
-        
-        if (is_wp_error($response)) {
-            throw new \Exception('RSS feed request failed: ' . $response->get_error_message());
-        }
-        
-        $body = wp_remote_retrieve_body($response);
-        if (empty($body)) {
-            return [];
-        }
-        
-        // Simple RSS parsing (WordPress has built-in RSS parser but it's limited)
-        $events = [];
-        
-        // Look for common RSS patterns
-        if (preg_match_all('/<item[^>]*>(.*?)<\/item>/is', $body, $items)) {
-            foreach ($items[1] as $item) {
-                $event = $this->parseRssItem($item);
-                if ($event) {
-                    $events[] = $event;
-                }
-            }
-        }
-        
-        return $events;
-    }
-
-    /**
-     * Parse individual RSS item
-     */
-    private function parseRssItem($item_xml)
-    {
-        $title = '';
-        $link = '';
-        $description = '';
-        
-        if (preg_match('/<title[^>]*>(.*?)<\/title>/is', $item_xml, $matches)) {
-            $title = strip_tags($matches[1]);
-        }
-        
-        if (preg_match('/<link[^>]*>(.*?)<\/link>/is', $item_xml, $matches)) {
-            $link = trim($matches[1]);
-        }
-        
-        if (preg_match('/<description[^>]*>(.*?)<\/description>/is', $item_xml, $matches)) {
-            $description = strip_tags($matches[1]);
-        }
-        
-        if (empty($title) || empty($link)) {
-            return null;
-        }
-        
-        // Check if it's likely an event
-        if (!$this->isLikelyEvent($title, $description)) {
-            return null;
-        }
-        
-        return [
-            'title' => $title,
-            'url' => $link,
-            'description' => $description,
-            'source' => 'rss_feed'
-        ];
-    }
-
-    /**
-     * Check if content is likely an event
-     */
-    private function isLikelyEvent($title, $description)
-    {
-        $event_keywords = [
-            'evenement', 'event', 'workshop', 'lezing', 'cursus', 'training',
-            'festival', 'beurs', 'bijeenkomst', 'conferentie', 'seminar',
-            'datum', 'tijd', 'locatie', 'plaats', 'inschrijven', 'aanmelden'
-        ];
-        
-        $text = strtolower($title . ' ' . $description);
-        
-        foreach ($event_keywords as $keyword) {
-            if (strpos($text, $keyword) !== false) {
-                return true;
-            }
-        }
-        
-        return false;
-    }
-
-    /**
-     * Get manual URLs from settings
+     * Get manual URLs from settings (or defaults when empty)
      */
     public function getManualUrls()
     {
         $options = Utils::getOptions();
         $manual_urls = $options['manual_urls'] ?? '';
-        
-        if (empty($manual_urls)) {
-            return [];
+
+        if (empty(trim($manual_urls))) {
+            return array_map(function ($url) {
+                return [
+                    'title' => 'Agenda',
+                    'url' => $url,
+                    'description' => 'Default agenda URL',
+                    'source' => 'manual',
+                ];
+            }, self::$default_manual_urls);
         }
-        
+
         $urls = array_filter(array_map('trim', explode("\n", $manual_urls)));
         $results = [];
-        
         foreach ($urls as $url) {
             if (filter_var($url, FILTER_VALIDATE_URL)) {
                 $results[] = [
                     'title' => 'Manual URL',
                     'url' => $url,
                     'description' => 'Manually added URL',
-                    'source' => 'manual'
+                    'source' => 'manual',
                 ];
             }
         }
-        
         return $results;
     }
 
     /**
-     * Test Google Custom Search API
+     * Test SerpAPI (one request)
      */
-    public function testGoogleApi()
+    public function testSerpApi()
     {
-        if (!$this->hasGoogleApi()) {
-            return [
-                'success' => false,
-                'message' => 'Google API key or CSE ID not configured'
-            ];
+        if (!$this->hasSearchApi()) {
+            return ['success' => false, 'message' => 'SerpAPI key not configured. Add it in Settings and save.'];
         }
-        
         try {
-            $results = $this->googleCustomSearch('test evenement', 1);
+            $results = $this->serpApiSearch('evenement Nederland', 2);
             return [
                 'success' => true,
-                'message' => 'Google API working, found ' . count($results) . ' results'
+                'message' => 'SerpAPI OK, found ' . count($results) . ' results (100 free searches/month).',
             ];
         } catch (\Exception $e) {
-            return [
-                'success' => false,
-                'message' => 'Google API error: ' . $e->getMessage()
-            ];
+            return ['success' => false, 'message' => $e->getMessage()];
         }
     }
 }

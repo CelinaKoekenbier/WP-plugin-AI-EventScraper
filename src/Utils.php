@@ -62,6 +62,44 @@ class Utils
     }
 
     /**
+     * Get the target week (the week that starts 4 weeks from today).
+     * Used for weekly runs: run on March 9 → target week April 6–12.
+     *
+     * @return array{0: int, 1: int} [start_timestamp, end_timestamp] (Monday 00:00 to Sunday 23:59:59)
+     */
+    public static function getTargetWeekRange()
+    {
+        $tz = new \DateTimeZone('Europe/Amsterdam');
+        $now = new \DateTime('now', $tz);
+        $inFourWeeks = (clone $now)->modify('+28 days');
+        // Monday of that week (ISO week starts Monday)
+        $dayOfWeek = (int) $inFourWeeks->format('N'); // 1=Mon .. 7=Sun
+        $daysToMonday = $dayOfWeek - 1;
+        $monday = (clone $inFourWeeks)->modify("-{$daysToMonday} days")->setTime(0, 0, 0);
+        $sunday = (clone $monday)->modify('+6 days')->setTime(23, 59, 59);
+        return [$monday->getTimestamp(), $sunday->getTimestamp()];
+    }
+
+    /**
+     * Get target week string in Dutch for search queries (e.g. "6-12 april 2026")
+     */
+    public static function getTargetWeekString()
+    {
+        list($start, $end) = self::getTargetWeekRange();
+        $tz = new \DateTimeZone('Europe/Amsterdam');
+        $d1 = (new \DateTime('@' . $start))->setTimezone($tz);
+        $d2 = (new \DateTime('@' . $end))->setTimezone($tz);
+        $day1 = (int) $d1->format('j');
+        $day2 = (int) $d2->format('j');
+        $month = self::$dutch_months[(int) $d1->format('n')];
+        $year = $d1->format('Y');
+        if ($day1 === $day2) {
+            return "{$day1} {$month} {$year}";
+        }
+        return "{$day1}-{$day2} {$month} {$year}";
+    }
+
+    /**
      * Parse Dutch date string to timestamp
      */
     public static function parseDutchDate($date_string, $timezone = 'Europe/Amsterdam')
@@ -427,8 +465,7 @@ class Utils
     {
         $defaults = [
             'apify_token' => '',
-            'google_api_key' => '',
-            'google_cse_id' => '',
+            'serpapi_api_key' => '',
             'queries' => implode("\n", [
                 'site:natuurmonumenten.nl "activiteit" -filetype:pdf',
                 'site:ivn.nl "activiteit" -filetype:pdf',
@@ -440,11 +477,13 @@ class Utils
             'language_code' => 'nl',
             'country_code' => 'nl',
             'max_results_per_query' => 20,
+            'max_urls_per_domain' => 10,
             'excluded_domains' => '',
             'min_image_width' => 300,
             'min_image_height' => 200,
             'test_mode' => false,
             'use_free_method' => true,
+            'restrict_to_target_week' => false,
         ];
         
         $options = get_option('apify_events_options', []);
