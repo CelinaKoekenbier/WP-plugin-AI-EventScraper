@@ -250,6 +250,15 @@ class Plugin
             'apify_events_settings',
             'apify_events_general'
         );
+
+        // Weekly schedule (WP-Cron)
+        add_settings_field(
+            'weekly_schedule',
+            __('Automatic run schedule', 'apify-events-to-posts'),
+            [$this, 'renderWeeklyScheduleField'],
+            'apify_events_settings',
+            'apify_events_general'
+        );
     }
 
     /**
@@ -272,7 +281,22 @@ class Plugin
         }
 
         if (isset($input['queries'])) {
-            $sanitized['queries'] = sanitize_textarea_field($input['queries']);
+            // Preserve our placeholder tokens like <VOLGEND_MAAND_JAAR> which sanitize_textarea_field() would strip as HTML.
+            $raw_queries = (string) $input['queries'];
+            $placeholders = [
+                '<VOLGEND_MAAND_JAAR>',
+                '<VOLGENDE_MAAND_JAAR>',
+                '<DEZE_MAAND_JAAR>',
+                '<MAAND_DAARNA_JAAR>',
+                '<TARGET_WEEK>',
+            ];
+            $sentinels = [];
+            foreach ($placeholders as $i => $ph) {
+                $sentinels[$ph] = "___APIFY_PH_{$i}___";
+            }
+            $protected = strtr($raw_queries, $sentinels);
+            $clean = sanitize_textarea_field($protected);
+            $sanitized['queries'] = strtr($clean, array_flip($sentinels));
         }
         
         if (isset($input['language_code'])) {
@@ -310,6 +334,27 @@ class Plugin
         if (isset($input['restrict_to_target_week'])) {
             $sanitized['restrict_to_target_week'] = (bool) $input['restrict_to_target_week'];
         }
+
+        if (isset($input['weekly_day'])) {
+            $day = absint($input['weekly_day']);
+            $sanitized['weekly_day'] = ($day >= 1 && $day <= 7) ? $day : 1;
+        }
+
+        if (isset($input['weekly_time'])) {
+            $t = sanitize_text_field($input['weekly_time']);
+            if (preg_match('/^([01]\d|2[0-3]):([0-5]\d)$/', $t)) {
+                $sanitized['weekly_time'] = $t;
+            } else {
+                $sanitized['weekly_time'] = '09:00';
+            }
+        }
+
+        // Re-schedule weekly cron when settings are saved
+        $merged = array_merge(Utils::getOptions(), $sanitized);
+        self::rescheduleWeeklyCron(
+            isset($merged['weekly_day']) ? (int) $merged['weekly_day'] : 1,
+            isset($merged['weekly_time']) ? (string) $merged['weekly_time'] : '09:00'
+        );
         
         return $sanitized;
     }
@@ -498,6 +543,47 @@ class Plugin
     }
 
     /**
+     * Render weekly schedule fields (day + time)
+     */
+    public function renderWeeklyScheduleField()
+    {
+        $options = Utils::getOptions();
+        $day = (int) ($options['weekly_day'] ?? 1);
+        if ($day < 1 || $day > 7) {
+            $day = 1;
+        }
+        $time = (string) ($options['weekly_time'] ?? '09:00');
+        if (!preg_match('/^([01]\d|2[0-3]):([0-5]\d)$/', $time)) {
+            $time = '09:00';
+        }
+
+        $days = [
+            1 => __('Monday', 'apify-events-to-posts'),
+            2 => __('Tuesday', 'apify-events-to-posts'),
+            3 => __('Wednesday', 'apify-events-to-posts'),
+            4 => __('Thursday', 'apify-events-to-posts'),
+            5 => __('Friday', 'apify-events-to-posts'),
+            6 => __('Saturday', 'apify-events-to-posts'),
+            7 => __('Sunday', 'apify-events-to-posts'),
+        ];
+
+        echo '<label>' . esc_html__('Day', 'apify-events-to-posts') . ' ';
+        echo '<select name="apify_events_options[weekly_day]">';
+        foreach ($days as $k => $label) {
+            echo '<option value="' . esc_attr($k) . '" ' . selected($day, $k, false) . '>' . esc_html($label) . '</option>';
+        }
+        echo '</select></label> ';
+
+        echo '<label style="margin-left:12px;">' . esc_html__('Time (Europe/Amsterdam)', 'apify-events-to-posts') . ' ';
+        echo '<input type="time" name="apify_events_options[weekly_time]" value="' . esc_attr($time) . '" /></label>';
+
+        echo '<p class="description">' . esc_html__(
+            'Controls the weekly WP-Cron run time. Note: WP-Cron triggers on site visits; if there are no visits at that exact time, it will run on the next visit.',
+            'apify-events-to-posts'
+        ) . '</p>';
+    }
+
+    /**
      * Handle AJAX run now request
      */
     public function handleRunNow()
@@ -612,9 +698,13 @@ class Plugin
             wp_create_category('Evenementen');
         }
 
-        // Schedule weekly cron (Monday 9:00 Amsterdam — target week = 4 weeks ahead)
+        $options = Utils::getOptions();
+        $day = isset($options['weekly_day']) ? (int) $options['weekly_day'] : 1;
+        $time = isset($options['weekly_time']) ? (string) $options['weekly_time'] : '09:00';
+
+        // Schedule weekly cron (configurable — target week = 4 weeks ahead)
         if (!wp_next_scheduled('apify_events_weekly')) {
-            $next_run = self::getNextWeeklyRunTime();
+            $next_run = self::getNextWeeklyRunTime($day, $time);
             wp_schedule_event($next_run, 'weekly', 'apify_events_weekly');
         }
         // Legacy: keep monthly if already set (do not add new)
@@ -641,6 +731,8 @@ class Plugin
             'min_image_width' => 300,
             'min_image_height' => 200,
             'test_mode' => false,
+            'weekly_day' => 1,
+            'weekly_time' => '09:00',
         ];
 
         add_option('apify_events_options', $default_options);
@@ -656,20 +748,58 @@ class Plugin
     }
 
     /**
-     * Next weekly run: Monday 9:00 Europe/Amsterdam
+     * Next weekly run time in Europe/Amsterdam.
+     *
+     * @param int    $day  1=Mon .. 7=Sun
+     * @param string $time HH:MM
      */
-    private static function getNextWeeklyRunTime()
+    private static function getNextWeeklyRunTime($day = 1, $time = '09:00')
     {
         $tz = new \DateTimeZone('Europe/Amsterdam');
         $now = new \DateTime('now', $tz);
-        $next = (clone $now)->setTime(9, 0, 0);
-        $dayOfWeek = (int) $now->format('N'); // 1=Mon .. 7=Sun
-        if ($dayOfWeek === 1 && $now->getTimestamp() < $next->getTimestamp()) {
-            return $next->getTimestamp(); // today Monday before 9:00
+
+        $day = (int) $day;
+        if ($day < 1 || $day > 7) {
+            $day = 1;
         }
-        $daysToNextMonday = $dayOfWeek === 1 ? 7 : (8 - $dayOfWeek);
-        $next->modify("+{$daysToNextMonday} days");
+
+        $hour = 9;
+        $minute = 0;
+        if (is_string($time) && preg_match('/^([01]\d|2[0-3]):([0-5]\d)$/', $time, $m)) {
+            $hour = (int) $m[1];
+            $minute = (int) $m[2];
+        }
+
+        $next = (clone $now)->setTime($hour, $minute, 0);
+        $todayDow = (int) $now->format('N'); // 1=Mon .. 7=Sun
+
+        // If it's the selected day and we haven't reached the time yet, schedule today.
+        if ($todayDow === $day && $now->getTimestamp() < $next->getTimestamp()) {
+            return $next->getTimestamp();
+        }
+
+        // Otherwise schedule the next occurrence of the selected weekday.
+        $delta = ($day - $todayDow + 7) % 7;
+        if ($delta === 0) {
+            $delta = 7;
+        }
+        $next->modify("+{$delta} days");
         return $next->getTimestamp();
+    }
+
+    /**
+     * Clear and re-schedule the weekly cron hook.
+     */
+    private static function rescheduleWeeklyCron($day, $time)
+    {
+        // Avoid scheduling before WP cron is ready
+        if (!function_exists('wp_schedule_event')) {
+            return;
+        }
+
+        wp_clear_scheduled_hook('apify_events_weekly');
+        $next = self::getNextWeeklyRunTime($day, $time);
+        wp_schedule_event($next, 'weekly', 'apify_events_weekly');
     }
 
     /**

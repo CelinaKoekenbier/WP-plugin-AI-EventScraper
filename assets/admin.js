@@ -58,6 +58,11 @@ jQuery(document).ready(function($) {
                     if (response.data && response.data.stats) {
                         updateStatistics(response.data.stats);
                     }
+
+                    // Refresh the page so the sidebar "Last Run Log" updates without manual reload
+                    setTimeout(function() {
+                        window.location.reload();
+                    }, 800);
                     
                 } else {
                     var errorMessage = 'Run completed with issues';
@@ -290,5 +295,19 @@ jQuery(document).ready(function($) {
     function initializePage() {
         // Initialize page - no automatic status check needed
         console.log('AI Events Scraper: Page initialized');
+
+        // Hide the floating save button when the original submit button is visible
+        var $submitWrap = $('#apify-submit-wrap');
+        var $footerActions = $('.apify-events-footer-actions');
+        if ($submitWrap.length && $footerActions.length) {
+            var toggleFloatingSave = function() {
+                var rect = $submitWrap[0].getBoundingClientRect();
+                var viewportH = window.innerHeight || document.documentElement.clientHeight;
+                var inView = rect.top < viewportH && rect.bottom > 0;
+                $footerActions.toggleClass('is-hidden', inView);
+            };
+            toggleFloatingSave();
+            $(window).on('scroll resize', toggleFloatingSave);
+        }
     }
 });

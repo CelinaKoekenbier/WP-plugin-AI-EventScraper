@@ -47,18 +47,42 @@ class Utils
     ];
 
     /**
-     * Get next month string in Dutch
+     * Get month+year string in Dutch for an offset from current month.
      */
-    public static function getNextMonthString()
+    public static function getMonthStringByOffset(int $offsetMonths): string
     {
         $timezone = new \DateTimeZone('Europe/Amsterdam');
         $now = new \DateTime('now', $timezone);
-        $next_month = $now->modify('first day of next month');
+        $month = $now->modify('first day of this month')->modify(($offsetMonths >= 0 ? '+' : '') . $offsetMonths . ' months');
         
-        $month_num = (int) $next_month->format('n');
-        $year = $next_month->format('Y');
+        $month_num = (int) $month->format('n');
+        $year = $month->format('Y');
         
         return self::$dutch_months[$month_num] . ' ' . $year;
+    }
+
+    /**
+     * Get this month string in Dutch (e.g. "maart 2026")
+     */
+    public static function getThisMonthString(): string
+    {
+        return self::getMonthStringByOffset(0);
+    }
+
+    /**
+     * Get next month string in Dutch (e.g. "april 2026")
+     */
+    public static function getNextMonthString(): string
+    {
+        return self::getMonthStringByOffset(1);
+    }
+
+    /**
+     * Get month-after-next string in Dutch (e.g. "mei 2026")
+     */
+    public static function getMonthAfterNextString(): string
+    {
+        return self::getMonthStringByOffset(2);
     }
 
     /**
@@ -484,6 +508,8 @@ class Utils
             'test_mode' => false,
             'use_free_method' => true,
             'restrict_to_target_week' => false,
+            'weekly_day' => 1,      // 1=Mon .. 7=Sun
+            'weekly_time' => '09:00', // HH:MM (Europe/Amsterdam)
         ];
         
         $options = get_option('apify_events_options', []);

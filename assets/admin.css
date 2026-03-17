@@ -48,6 +48,18 @@ body.settings_page_apify-events .wrap {
     z-index: 998;
 }
 
+body.settings_page_apify-events .apify-events-footer-actions {
+    display: flex;
+    justify-content: flex-start;
+    padding: 10px 20px;
+    background: transparent;
+    border-top: 0;
+}
+
+body.settings_page_apify-events .apify-events-footer-actions.is-hidden {
+    display: none;
+}
+
 .apify-events-page-header img,
 .apify-events-page-footer img {
     display: block;
@@ -186,6 +198,30 @@ body.settings_page_apify-events #apify-run-now.button.button-primary:focus {
 
 body.settings_page_apify-events .apify-events-settings .button.button-primary:active,
 body.settings_page_apify-events #apify-run-now.button.button-primary:active {
+    background: var(--apify-accent-active);
+    border-color: var(--apify-accent-active);
+}
+
+/* Ensure primary buttons are themed everywhere on this plugin page (incl. footer save) */
+body.settings_page_apify-events .button.button-primary {
+    background: var(--apify-accent);
+    border-color: var(--apify-accent);
+    color: #fff;
+    text-shadow: none;
+    box-shadow: none;
+}
+
+body.settings_page_apify-events .button.button-primary:hover {
+    background: var(--apify-accent-hover);
+    border-color: var(--apify-accent-hover);
+    color: #fff;
+}
+
+body.settings_page_apify-events .button.button-primary:focus {
+    box-shadow: 0 0 0 1px #fff, 0 0 0 3px rgba(92, 179, 180, 0.45);
+}
+
+body.settings_page_apify-events .button.button-primary:active {
     background: var(--apify-accent-active);
     border-color: var(--apify-accent-active);
 }

@@ -38,11 +38,13 @@ class Settings
             
             <div class="apify-events-settings">
                 <div class="apify-events-main">
-                    <form method="post" action="options.php">
+                    <form id="apify-events-settings-form" method="post" action="options.php">
                         <?php
                         settings_fields('apify_events_settings');
                         do_settings_sections('apify_events_settings');
+                        echo '<div id="apify-submit-wrap">';
                         submit_button();
+                        echo '</div>';
                         ?>
                     </form>
                 </div>
@@ -67,7 +69,13 @@ class Settings
                     
                     <div class="apify-events-info">
                         <h3><?php _e('Plugin Info', 'apify-events-to-posts'); ?></h3>
-                        <p><?php _e('This plugin automatically discovers Dutch events using Apify and saves them as draft posts.', 'apify-events-to-posts'); ?></p>
+                        <p><?php _e('Finds upcoming events and saves them as WordPress draft posts.', 'apify-events-to-posts'); ?></p>
+                        <ul style="margin: 8px 0 12px 18px; list-style: disc;">
+                            <li><?php _e('Discover URLs via SerpAPI or use Manual URLs (free).', 'apify-events-to-posts'); ?></li>
+                            <li><?php _e('Extract dates, place, and a short description from pages.', 'apify-events-to-posts'); ?></li>
+                            <li><?php _e('Avoid duplicates, exclude domains, and cap URLs per domain.', 'apify-events-to-posts'); ?></li>
+                            <li><?php _e('Run manually or on a weekly schedule (configurable).', 'apify-events-to-posts'); ?></li>
+                        </ul>
                         <p><strong><?php _e('Next scheduled run:', 'apify-events-to-posts'); ?></strong><br>
                         <?php
                         $next_run = wp_next_scheduled('apify_events_weekly') ?: wp_next_scheduled('apify_events_monthly');
@@ -111,7 +119,12 @@ class Settings
         if (!$url) {
             return;
         }
-        echo '<div class="apify-events-page-footer"><img src="' . esc_url($url) . '" alt="' . esc_attr__('Plugin footer', 'apify-events-to-posts') . '" /></div>';
+        echo '<div class="apify-events-page-footer">';
+        echo '<div class="apify-events-footer-actions">';
+        echo '<button type="submit" form="apify-events-settings-form" class="button button-primary">' . esc_html__('Save Changes', 'apify-events-to-posts') . '</button>';
+        echo '</div>';
+        echo '<img src="' . esc_url($url) . '" alt="' . esc_attr__('Plugin footer', 'apify-events-to-posts') . '" />';
+        echo '</div>';
     }
 
     private function getPluginAssetUrl(string $relativePath): ?string

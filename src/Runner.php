@@ -79,8 +79,16 @@ class Runner
     }
 
     /**
-     * Prepare search queries: replace <VOLGEND_MAAND_JAAR> and <TARGET_WEEK>
-     * TARGET_WEEK = week 4 weeks ahead (e.g. "6-12 april 2026") for weekly runs
+     * Prepare search queries by replacing placeholders.
+     *
+     * Month placeholders (Dutch):
+     * - <DEZE_MAAND_JAAR> = this month (e.g. "maart 2026")
+     * - <VOLGEND_MAAND_JAAR> = next month (e.g. "april 2026") (backward compatible)
+     * - <VOLGENDE_MAAND_JAAR> = next month (alias)
+     * - <MAAND_DAARNA_JAAR> = month after next (e.g. "mei 2026")
+     *
+     * Week placeholder:
+     * - <TARGET_WEEK> = week 4 weeks ahead (e.g. "6-12 april 2026") for weekly runs
      */
     private function prepareQueries($queries_text, $next_month, $target_week = null)
     {
@@ -89,13 +97,23 @@ class Runner
         }
         $queries = array_filter(array_map('trim', explode("\n", $queries_text)));
         $prepared_queries = [];
+
+        $this_month = Utils::getThisMonthString();
+        $next_month2 = Utils::getNextMonthString();
+        $month_after_next = Utils::getMonthAfterNextString();
         
         foreach ($queries as $query) {
             if (empty($query)) {
                 continue;
             }
             
+            // Backward compatible: existing placeholder uses $next_month arg
             $query = str_replace('<VOLGEND_MAAND_JAAR>', $next_month, $query);
+            // New placeholders
+            $query = str_replace('<DEZE_MAAND_JAAR>', $this_month, $query);
+            $query = str_replace('<VOLGENDE_MAAND_JAAR>', $next_month2, $query);
+            $query = str_replace('<MAAND_DAARNA_JAAR>', $month_after_next, $query);
+
             $query = str_replace('<TARGET_WEEK>', $target_week, $query);
             $prepared_queries[] = $query;
         }
