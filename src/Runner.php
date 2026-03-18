@@ -44,7 +44,7 @@ class Runner
             // Clear debug log from previous run
             Utils::clearDebugLog();
             
-            Utils::log('Starting Apify Events discovery run', 'info');
+            Utils::log('Starten met event-ontdekking (Apify Events)', 'info');
             
             // Get options
             $options = Utils::getOptions();
@@ -59,11 +59,11 @@ class Runner
             }
             
             $run_time = time() - $start_time;
-            Utils::log("Run completed in {$run_time} seconds", 'info');
+            Utils::log("Run afgerond in {$run_time} seconden", 'info');
             
         } catch (\Exception $e) {
             $errors[] = $e->getMessage();
-            Utils::log('Run failed: ' . $e->getMessage(), 'error');
+            Utils::log('Run mislukt: ' . $e->getMessage(), 'error');
         }
         
         // Save run log
@@ -127,17 +127,17 @@ class Runner
     private function formatLog($stats, $errors, $skipped_reasons)
     {
         $timezone_string = get_option('timezone_string') ?: 'Europe/Amsterdam';
-        $log = "Run completed at " . wp_date('Y-m-d H:i:s', null, new \DateTimeZone($timezone_string)) . " ({$timezone_string})\n\n";
+        $log = "Run uitgevoerd op " . wp_date('Y-m-d H:i:s', null, new \DateTimeZone($timezone_string)) . " ({$timezone_string})\n\n";
         
-        $log .= "Statistics:\n";
-        $log .= "- URLs discovered: {$stats['discovered']}\n";
-        $log .= "- Pages fetched: {$stats['fetched']}\n";
-        $log .= "- Events parsed: {$stats['parsed']}\n";
-        $log .= "- Posts imported: {$stats['imported']}\n";
-        $log .= "- Posts skipped: {$stats['skipped']}\n\n";
+        $log .= "Statistieken:\n";
+        $log .= "- Ontdekte URL’s: {$stats['discovered']}\n";
+        $log .= "- Opgehaalde pagina’s: {$stats['fetched']}\n";
+        $log .= "- Events herkend: {$stats['parsed']}\n";
+        $log .= "- Posts geïmporteerd: {$stats['imported']}\n";
+        $log .= "- Posts overgeslagen: {$stats['skipped']}\n\n";
         
         if (!empty($errors)) {
-            $log .= "Errors:\n";
+            $log .= "Fouten:\n";
             foreach ($errors as $error) {
                 $log .= "- {$error}\n";
             }
@@ -145,7 +145,7 @@ class Runner
         }
         
         if (!empty($skipped_reasons)) {
-            $log .= "Skip reasons:\n";
+            $log .= "Redenen om over te slaan:\n";
             foreach ($skipped_reasons as $reason => $count) {
                 $log .= "- {$reason}: {$count}\n";
             }
@@ -155,7 +155,7 @@ class Runner
         // Add debug log if available (for troubleshooting)
         $debug_log = Utils::getDebugLog();
         if (!empty($debug_log)) {
-            $log .= "=== Debug Details (last 15 entries) ===\n";
+            $log .= "=== Debug-details (laatste 15 regels) ===\n";
             $log .= implode("\n", array_slice($debug_log, -15));
             $log .= "\n\n";
         }
@@ -243,7 +243,7 @@ class Runner
             if (!$apify_client->hasToken()) {
                 return [
                     'success' => false,
-                    'message' => 'Apify token not configured'
+                    'message' => 'Apify-token niet ingesteld'
                 ];
             }
             
@@ -381,7 +381,7 @@ class Runner
         Utils::log('Using queries: ' . implode(', ', $queries), 'info');
         
         // Step 1: Search for candidate URLs
-        Utils::log('Step 1: Searching for candidate URLs', 'info');
+        Utils::log('Stap 1: Zoeken naar kandidaat-URL’s', 'info');
         
         $search_results = [];
         
@@ -416,7 +416,7 @@ class Runner
         }
         
         // Step 2: Scrape pages
-        Utils::log('Step 2: Scraping pages', 'info');
+        Utils::log('Stap 2: Pagina’s scrapen', 'info');
         
         $extractor = new Extractor();
         $importer = new Importer();
@@ -473,8 +473,8 @@ class Runner
                 }
                 
             } catch (\Exception $e) {
-                $errors[] = "Error processing {$url}: " . $e->getMessage();
-                Utils::log("Error processing {$url}: " . $e->getMessage(), 'error');
+                $errors[] = "Fout bij verwerken {$url}: " . $e->getMessage();
+                Utils::log("Fout bij verwerken {$url}: " . $e->getMessage(), 'error');
             }
         }
         
@@ -490,10 +490,10 @@ class Runner
             }));
             $removed = $before - count($valid_events);
             if ($removed > 0) {
-                Utils::log("Filtered to target week: {$removed} events outside {$target_week_str} removed", 'info');
+            Utils::log("Gefilterd op doelweek: {$removed} events buiten {$target_week_str} verwijderd", 'info');
             }
         } else {
-            Utils::log("Target week: {$target_week_str} (not restricting — importing all valid events)", 'info');
+            Utils::log("Doelweek: {$target_week_str} (niet beperken — alle geldige events importeren)", 'info');
         }
 
         // Keep only events within this month + next month + month after next (and never in the past)
@@ -512,7 +512,7 @@ class Runner
         }));
         $removedWindow = $beforeWindow - count($valid_events);
         if ($removedWindow > 0) {
-            Utils::log("Filtered to 3-month window: {$removedWindow} events outside current+next+after-next months removed", 'info');
+            Utils::log("Gefilterd op 3-maanden venster: {$removedWindow} events buiten deze+volgende+maand daarna verwijderd", 'info');
         }
         
         // Sort by confidence and limit to 10
@@ -529,31 +529,31 @@ class Runner
                 
                 if ($result['success']) {
                     $stats['imported']++;
-                    Utils::log("Imported event: {$event_data['title']}", 'info');
+                    Utils::log("Event geïmporteerd: {$event_data['title']}", 'info');
                 } else {
                     $stats['skipped']++;
                     $reason = $result['reason'] ?? 'unknown';
                     $skipped_reasons[$reason] = ($skipped_reasons[$reason] ?? 0) + 1;
-                    Utils::log("Skipped event: {$event_data['title']} - {$result['message']}", 'info');
+                    Utils::log("Event overgeslagen: {$event_data['title']} - {$result['message']}", 'info');
                 }
                 
             } catch (\Exception $e) {
                 $stats['skipped']++;
                 $skipped_reasons['import_error'] = ($skipped_reasons['import_error'] ?? 0) + 1;
-                $errors[] = "Error importing {$event_data['title']}: " . $e->getMessage();
-                Utils::log("Error importing {$event_data['title']}: " . $e->getMessage(), 'error');
+                $errors[] = "Fout bij importeren {$event_data['title']}: " . $e->getMessage();
+                Utils::log("Fout bij importeren {$event_data['title']}: " . $e->getMessage(), 'error');
             }
         }
         
         // Validate import count (lowered to 1 for testing)
         if ($stats['imported'] < 1) {
-            $errors[] = "No events imported (need at least 1 for testing)";
+            $errors[] = "Geen events geïmporteerd (minstens 1 nodig voor test)";
         } elseif ($stats['imported'] < 3) {
-            Utils::log("Warning: Only {$stats['imported']} events imported (production target is 3-10)", 'info');
+            Utils::log("Waarschuwing: slechts {$stats['imported']} events geïmporteerd (richtlijn: 3-10)", 'info');
         }
         
         if ($stats['imported'] > 10) {
-            Utils::log("Warning: {$stats['imported']} events imported (maximum 10 recommended)", 'info');
+            Utils::log("Waarschuwing: {$stats['imported']} events geïmporteerd (maximaal 10 aanbevolen)", 'info');
         }
     }
 
@@ -568,7 +568,7 @@ class Runner
         
         Utils::log('Checking if token is configured', 'info');
         if (!$apify_client->hasToken()) {
-            throw new \Exception('Apify token not configured');
+            throw new \Exception('Apify-token niet ingesteld');
         }
         
         Utils::log('Token is configured, getting options', 'info');
@@ -585,7 +585,7 @@ class Runner
         Utils::log('Using queries: ' . implode(', ', $queries), 'info');
         
         // Step 1: Search for candidate URLs
-        Utils::log('Step 1: Searching for candidate URLs', 'info');
+        Utils::log('Stap 1: Zoeken naar kandidaat-URL’s', 'info');
         $search_run_id = $apify_client->runGoogleSearchScraper(
             $queries,
             $options['language_code'],
@@ -632,7 +632,7 @@ class Runner
         Utils::log("Fetched {$stats['fetched']} pages", 'info');
         
         // Step 3: Extract and import events
-        Utils::log('Step 3: Extracting and importing events', 'info');
+        Utils::log('Stap 3: Events extraheren en importeren', 'info');
         $extractor = new Extractor();
         $importer = new Importer();
         
@@ -674,8 +674,8 @@ class Runner
                 }
                 
             } catch (\Exception $e) {
-                $errors[] = "Error processing {$url}: " . $e->getMessage();
-                Utils::log("Error processing {$url}: " . $e->getMessage(), 'error');
+                $errors[] = "Fout bij verwerken {$url}: " . $e->getMessage();
+                Utils::log("Fout bij verwerken {$url}: " . $e->getMessage(), 'error');
             }
         }
         
@@ -695,31 +695,31 @@ class Runner
                 
                 if ($result['success']) {
                     $stats['imported']++;
-                    Utils::log("Imported event: {$event_data['title']}", 'info');
+                    Utils::log("Event geïmporteerd: {$event_data['title']}", 'info');
                 } else {
                     $stats['skipped']++;
                     $reason = $result['reason'] ?? 'unknown';
                     $skipped_reasons[$reason] = ($skipped_reasons[$reason] ?? 0) + 1;
-                    Utils::log("Skipped event: {$event_data['title']} - {$result['message']}", 'info');
+                    Utils::log("Event overgeslagen: {$event_data['title']} - {$result['message']}", 'info');
                 }
                 
             } catch (\Exception $e) {
                 $stats['skipped']++;
                 $skipped_reasons['import_error'] = ($skipped_reasons['import_error'] ?? 0) + 1;
-                $errors[] = "Error importing {$event_data['title']}: " . $e->getMessage();
-                Utils::log("Error importing {$event_data['title']}: " . $e->getMessage(), 'error');
+                $errors[] = "Fout bij importeren {$event_data['title']}: " . $e->getMessage();
+                Utils::log("Fout bij importeren {$event_data['title']}: " . $e->getMessage(), 'error');
             }
         }
         
         // Validate import count (lowered to 1 for testing)
         if ($stats['imported'] < 1) {
-            $errors[] = "No events imported (need at least 1 for testing)";
+            $errors[] = "Geen events geïmporteerd (minstens 1 nodig voor test)";
         } elseif ($stats['imported'] < 3) {
-            Utils::log("Warning: Only {$stats['imported']} events imported (production target is 3-10)", 'info');
+            Utils::log("Waarschuwing: slechts {$stats['imported']} events geïmporteerd (richtlijn: 3-10)", 'info');
         }
         
         if ($stats['imported'] > 10) {
-            Utils::log("Warning: {$stats['imported']} events imported (maximum 10 recommended)", 'info');
+            Utils::log("Waarschuwing: {$stats['imported']} events geïmporteerd (maximaal 10 aanbevolen)", 'info');
         }
     }
 
@@ -742,7 +742,7 @@ class Runner
         }
         
         if ($added === 0 && !empty($events) && !empty($source_url)) {
-            Utils::log("No valid events extracted from {$source_url}", 'debug');
+            Utils::log("Geen geldige events geëxtraheerd uit {$source_url}", 'debug');
         }
         
         return $added;

@@ -31,9 +31,9 @@ class Settings
             <h1 class="apify-events-page-title"><?php echo esc_html(get_admin_page_title()); ?></h1>
             
             <div class="notice notice-info apify-events-notice" style="margin: 15px 0;">
-                <p><strong>🎉 FREE Version Available!</strong> This plugin works WITHOUT any paid subscriptions!</p>
-                <p>✅ <strong>Quick Start:</strong> Scroll down to <strong>"Manual URLs (Free)"</strong> → Add event URLs → Save → Click "Run Now"</p>
-                <p>ℹ️ You can leave "Apify Token" empty. It's only needed for the optional paid method ($49+/month).</p>
+                <p><strong>🎉 Gratis versie beschikbaar!</strong> Deze plugin werkt ZONDER betaalde abonnementen.</p>
+                <p>✅ <strong>Snel starten:</strong> Scrol omlaag naar <strong>"Handmatige URL’s (gratis)"</strong> → voeg event-URL’s toe → sla op → klik op "Run Now"</p>
+                <p>ℹ️ Je mag "Apify-token" leeg laten. Alleen nodig voor de optionele betaalde methode ($49+/maand).</p>
             </div>
             
             <div class="apify-events-settings">
@@ -51,8 +51,8 @@ class Settings
                 
                 <div class="apify-events-sidebar">
                     <div class="apify-events-run-now">
-                        <h3><?php _e('Manual Run', 'apify-events-to-posts'); ?></h3>
-                        <p><?php _e('Run the event discovery process now:', 'apify-events-to-posts'); ?></p>
+                        <h3><?php _e('Handmatige run', 'apify-events-to-posts'); ?></h3>
+                        <p><?php _e('Start nu het event-ontdekkingsproces:', 'apify-events-to-posts'); ?></p>
                         <button type="button" id="apify-run-now" class="button button-primary">
                             <?php _e('Run Now', 'apify-events-to-posts'); ?>
                         </button>
@@ -63,37 +63,37 @@ class Settings
                     </div>
                     
                     <div class="apify-events-logs">
-                        <h3><?php _e('Last Run Log', 'apify-events-to-posts'); ?></h3>
+                        <h3><?php _e('Laatste runlog', 'apify-events-to-posts'); ?></h3>
                         <?php $this->renderLastRunLog(); ?>
                     </div>
                     
                     <div class="apify-events-info">
-                        <h3><?php _e('Plugin Info', 'apify-events-to-posts'); ?></h3>
-                        <p><?php _e('Finds upcoming events and saves them as WordPress draft posts.', 'apify-events-to-posts'); ?></p>
+                        <h3><?php _e('Plugininfo', 'apify-events-to-posts'); ?></h3>
+                        <p><?php _e('Vindt komende events en slaat ze op als WordPress-conceptberichten.', 'apify-events-to-posts'); ?></p>
                         <ul style="margin: 8px 0 12px 18px; list-style: disc;">
-                            <li><?php _e('Discover URLs via SerpAPI or use Manual URLs (free).', 'apify-events-to-posts'); ?></li>
-                            <li><?php _e('Extract dates, place, and a short description from pages.', 'apify-events-to-posts'); ?></li>
-                            <li><?php _e('Avoid duplicates, exclude domains, and cap URLs per domain.', 'apify-events-to-posts'); ?></li>
-                            <li><?php _e('Run manually or on a weekly schedule (configurable).', 'apify-events-to-posts'); ?></li>
+                            <li><?php _e('Ontdek URL’s via SerpAPI of gebruik Handmatige URL’s (gratis).', 'apify-events-to-posts'); ?></li>
+                            <li><?php _e('Haal datum, plaats en een korte beschrijving uit pagina’s.', 'apify-events-to-posts'); ?></li>
+                            <li><?php _e('Voorkom duplicaten, sluit domeinen uit en beperk URL’s per domein.', 'apify-events-to-posts'); ?></li>
+                            <li><?php _e('Start handmatig of volgens een wekelijks schema (instelbaar).', 'apify-events-to-posts'); ?></li>
                         </ul>
-                        <p><strong><?php _e('Next scheduled run:', 'apify-events-to-posts'); ?></strong><br>
+                        <p><strong><?php _e('Volgende geplande run:', 'apify-events-to-posts'); ?></strong><br>
                         <?php
                         $next_run = wp_next_scheduled('apify_events_weekly') ?: wp_next_scheduled('apify_events_monthly');
                         if ($next_run) {
                             echo esc_html(wp_date(get_option('date_format') . ' ' . get_option('time_format'), $next_run));
-                            echo ' <small>(' . (wp_next_scheduled('apify_events_weekly') ? __('weekly', 'apify-events-to-posts') : __('monthly', 'apify-events-to-posts')) . ')</small>';
+                            echo ' <small>(' . (wp_next_scheduled('apify_events_weekly') ? __('wekelijks', 'apify-events-to-posts') : __('maandelijks', 'apify-events-to-posts')) . ')</small>';
                         } else {
-                            _e('Not scheduled', 'apify-events-to-posts');
+                            _e('Niet ingepland', 'apify-events-to-posts');
                         }
                         ?></p>
                         
-                        <p><strong><?php _e('Last successful run:', 'apify-events-to-posts'); ?></strong><br>
+                        <p><strong><?php _e('Laatste succesvolle run:', 'apify-events-to-posts'); ?></strong><br>
                         <?php
                         $last_run = get_option('apify_events_last_run', 0);
                         if ($last_run) {
                             echo esc_html(wp_date(get_option('date_format') . ' ' . get_option('time_format'), $last_run));
                         } else {
-                            _e('Never', 'apify-events-to-posts');
+                            _e('Nooit', 'apify-events-to-posts');
                         }
                         ?></p>
                     </div>
@@ -110,7 +110,7 @@ class Settings
         if (!$url) {
             return;
         }
-        echo '<div class="apify-events-page-header"><img src="' . esc_url($url) . '" alt="' . esc_attr__('Plugin header', 'apify-events-to-posts') . '" /></div>';
+        echo '<div class="apify-events-page-header"><img src="' . esc_url($url) . '" alt="' . esc_attr__('Pluginkop', 'apify-events-to-posts') . '" /></div>';
     }
 
     private function renderFooterImage(): void
@@ -121,9 +121,9 @@ class Settings
         }
         echo '<div class="apify-events-page-footer">';
         echo '<div class="apify-events-footer-actions">';
-        echo '<button type="submit" form="apify-events-settings-form" class="button button-primary">' . esc_html__('Save Changes', 'apify-events-to-posts') . '</button>';
+        echo '<button type="submit" form="apify-events-settings-form" class="button button-primary">' . esc_html__('Wijzigingen opslaan', 'apify-events-to-posts') . '</button>';
         echo '</div>';
-        echo '<img src="' . esc_url($url) . '" alt="' . esc_attr__('Plugin footer', 'apify-events-to-posts') . '" />';
+        echo '<img src="' . esc_url($url) . '" alt="' . esc_attr__('Pluginvoettekst', 'apify-events-to-posts') . '" />';
         echo '</div>';
     }
 
@@ -147,7 +147,7 @@ class Settings
         $log = get_option('apify_events_last_run_log', '');
         
         if (empty($log)) {
-            echo '<div class="apify-logs empty">' . __('No logs available', 'apify-events-to-posts') . '</div>';
+            echo '<div class="apify-logs empty">' . __('Geen loggegevens beschikbaar', 'apify-events-to-posts') . '</div>';
             return;
         }
         
@@ -161,19 +161,19 @@ class Settings
         $formatted_log = '';
         if (isset($log_data['timestamp'])) {
             $timezone_string = get_option('timezone_string') ?: 'Europe/Amsterdam';
-            $formatted_log .= 'Run: ' . wp_date(get_option('date_format') . ' ' . get_option('time_format'), $log_data['timestamp'], new \DateTimeZone($timezone_string)) . "\n";
+            $formatted_log .= 'Run op: ' . wp_date(get_option('date_format') . ' ' . get_option('time_format'), $log_data['timestamp'], new \DateTimeZone($timezone_string)) . "\n";
         }
         
         if (isset($log_data['stats'])) {
             $stats = $log_data['stats'];
-            $formatted_log .= "\nStatistics:\n";
-            $formatted_log .= "- URLs discovered: " . ($stats['discovered'] ?? 0) . "\n";
-            $formatted_log .= "- Pages fetched: " . ($stats['fetched'] ?? 0) . "\n";
-            $formatted_log .= "- Events parsed: " . ($stats['parsed'] ?? 0) . "\n";
-            $formatted_log .= "- Posts imported: " . ($stats['imported'] ?? 0) . "\n";
-            $formatted_log .= "- Posts skipped: " . ($stats['skipped'] ?? 0) . "\n";
+            $formatted_log .= "\nStatistieken:\n";
+            $formatted_log .= "- Ontdekte URL’s: " . ($stats['discovered'] ?? 0) . "\n";
+            $formatted_log .= "- Opgehaalde pagina’s: " . ($stats['fetched'] ?? 0) . "\n";
+            $formatted_log .= "- Events herkend: " . ($stats['parsed'] ?? 0) . "\n";
+            $formatted_log .= "- Posts geïmporteerd: " . ($stats['imported'] ?? 0) . "\n";
+            $formatted_log .= "- Posts overgeslagen: " . ($stats['skipped'] ?? 0) . "\n";
             if (!empty($stats['sample_urls'])) {
-                $formatted_log .= "\nProcessed URLs (sample):\n";
+                $formatted_log .= "\nVerwerkte URL’s (voorbeeld):\n";
                 foreach ($stats['sample_urls'] as $u) {
                     if ($u) $formatted_log .= "- " . $u . "\n";
                 }
@@ -181,14 +181,14 @@ class Settings
         }
         
         if (isset($log_data['errors']) && !empty($log_data['errors'])) {
-            $formatted_log .= "\nErrors:\n";
+            $formatted_log .= "\nFouten:\n";
             foreach ($log_data['errors'] as $error) {
                 $formatted_log .= "- " . $error . "\n";
             }
         }
         
         if (isset($log_data['skipped_reasons']) && !empty($log_data['skipped_reasons'])) {
-            $formatted_log .= "\nSkip reasons:\n";
+            $formatted_log .= "\nRedenen om over te slaan:\n";
             foreach ($log_data['skipped_reasons'] as $reason => $count) {
                 $formatted_log .= "- " . $reason . ": " . $count . "\n";
             }

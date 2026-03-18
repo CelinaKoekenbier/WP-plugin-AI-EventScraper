@@ -26,7 +26,7 @@ jQuery(document).ready(function($) {
         $status.removeClass('success error')
                .addClass('loading')
                .show()
-               .html('<span class="apify-loading"></span>Starting event discovery...');
+               .html('<span class="apify-loading"></span>Starten met event-ontdekking...');
         
         // Make AJAX request
         console.log('Apify Events: Making AJAX request to:', apifyEvents.ajaxUrl);
@@ -65,7 +65,7 @@ jQuery(document).ready(function($) {
                     }, 800);
                     
                 } else {
-                    var errorMessage = 'Run completed with issues';
+                    var errorMessage = 'Run afgerond met problemen';
                     var errorDetails = '';
                     
                     if (response.data) {
@@ -77,7 +77,7 @@ jQuery(document).ready(function($) {
                             errorMessage = response.data.error;
                         } else if (response.log) {
                             // Show the log
-                            errorMessage = 'Run completed - check log for details';
+                            errorMessage = 'Run afgerond - bekijk de log voor details';
                         }
                         
                         // Add additional error details if available
@@ -101,11 +101,11 @@ jQuery(document).ready(function($) {
                 console.log('Apify Events: Response text:', xhr.responseText);
                 console.log('Apify Events: Response JSON:', xhr.responseJSON);
                 
-                var errorMessage = 'Unknown error occurred';
+                var errorMessage = 'Onbekende fout opgetreden';
                 var errorDetails = '';
                 
                 if (status === 'timeout') {
-                    errorMessage = 'Request timed out. The process may still be running.';
+                    errorMessage = 'Aanvraag time-out. Het proces kan nog bezig zijn.';
                 } else if (xhr.responseJSON && xhr.responseJSON.data) {
                     if (typeof xhr.responseJSON.data === 'string') {
                         errorMessage = xhr.responseJSON.data;
@@ -120,12 +120,12 @@ jQuery(document).ready(function($) {
                         errorDetails = '<br><small>File: ' + xhr.responseJSON.data.file + ' (line ' + xhr.responseJSON.data.line + ')</small>';
                     }
                 } else if (xhr.status) {
-                    errorMessage = 'HTTP Error ' + xhr.status + ': ' + error;
+                    errorMessage = 'HTTP-fout ' + xhr.status + ': ' + error;
                     if (xhr.responseText) {
-                        errorDetails = '<br><small>Response: ' + xhr.responseText.substring(0, 200) + '</small>';
+                        errorDetails = '<br><small>Antwoord: ' + xhr.responseText.substring(0, 200) + '</small>';
                     }
                 } else {
-                    errorMessage = 'Network error: ' + error;
+                    errorMessage = 'Netwerkfout: ' + error;
                 }
                 
                 $status.removeClass('loading')
@@ -147,8 +147,8 @@ jQuery(document).ready(function($) {
         var $button = $(this);
         var $status = $('#apify-run-status');
         
-        $button.prop('disabled', true).text('Testing...');
-        $status.removeClass('success error loading').show().text('Testing connection...');
+        $button.prop('disabled', true).text('Bezig met testen...');
+        $status.removeClass('success error loading').show().text('Verbinding testen...');
         
         console.log('Apify Events: Testing AJAX connection');
         
@@ -162,15 +162,15 @@ jQuery(document).ready(function($) {
             success: function(response) {
                 console.log('Apify Events: Test response:', response);
                 if (response.success) {
-                    $status.addClass('success').text('Connection successful! ' + (response.data && response.data.message ? response.data.message : ''));
+                    $status.addClass('success').text('Verbinding gelukt! ' + (response.data && response.data.message ? response.data.message : ''));
                 } else {
-                    var msg = (response.data && response.data.message) ? response.data.message : (response.data || 'Unknown error');
-                    $status.addClass('error').text('Test failed: ' + msg);
+                    var msg = (response.data && response.data.message) ? response.data.message : (response.data || 'Onbekende fout');
+                    $status.addClass('error').text('Test mislukt: ' + msg);
                 }
             },
             error: function(xhr, status, error) {
                 console.log('Apify Events: Test error:', xhr, status, error);
-                $status.addClass('error').text('Connection test failed: ' + error);
+                $status.addClass('error').text('Verbindingstest mislukt: ' + error);
             },
             complete: function() {
                 $button.prop('disabled', false).text('Test Connection');
@@ -225,7 +225,7 @@ jQuery(document).ready(function($) {
         // Validate queries
         var $queriesField = $form.find('textarea[name="apify_events_options[queries]"]');
         if ($queriesField.length && !$queriesField.val().trim()) {
-            showFieldError($queriesField, 'At least one search query is required');
+            showFieldError($queriesField, 'Minstens één zoekopdracht is vereist');
             hasErrors = true;
         }
         
@@ -274,7 +274,7 @@ jQuery(document).ready(function($) {
     
     // Confirm before running
     $('#apify-run-now').on('click', function(e) {
-        if (!confirm('This will start the event discovery process. Continue?')) {
+        if (!confirm('Dit start het event-ontdekkingsproces. Doorgaan?')) {
             e.preventDefault();
             return false;
         }

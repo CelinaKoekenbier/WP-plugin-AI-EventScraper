@@ -49,7 +49,7 @@ class Importer
             return [
                 'success' => false,
                 'reason' => 'post_creation_failed',
-                'message' => 'Failed to create post'
+                'message' => 'Mislukt om post aan te maken'
             ];
         }
 
@@ -167,7 +167,7 @@ class Importer
         $post_id = wp_insert_post($post_data);
         
         if (is_wp_error($post_id)) {
-            Utils::log('Failed to create post: ' . $post_id->get_error_message(), 'error');
+            Utils::log('Mislukt om post aan te maken: ' . $post_id->get_error_message(), 'error');
             return false;
         }
         
@@ -185,22 +185,22 @@ class Importer
         // Date
         if (!empty($event_data['date_start'])) {
             $date_str = $this->formatDateForContent($event_data['date_start']);
-            $content .= '<dt>Date:</dt><dd>' . esc_html($date_str) . '</dd>' . "\n";
+            $content .= '<dt>Datum:</dt><dd>' . esc_html($date_str) . '</dd>' . "\n";
         }
         
         // Time
         if (!empty($event_data['time'])) {
-            $content .= '<dt>Time:</dt><dd>' . esc_html($event_data['time']) . '</dd>' . "\n";
+            $content .= '<dt>Tijd:</dt><dd>' . esc_html($event_data['time']) . '</dd>' . "\n";
         }
         
         // Place
         if (!empty($event_data['place'])) {
-            $content .= '<dt>Place:</dt><dd>' . esc_html($event_data['place']) . '</dd>' . "\n";
+            $content .= '<dt>Plaats:</dt><dd>' . esc_html($event_data['place']) . '</dd>' . "\n";
         }
         
         // Source
         if (!empty($event_data['url'])) {
-            $content .= '<dt>Source:</dt><dd><a href="' . esc_url($event_data['url']) . '" rel="nofollow noopener" target="_blank">' . esc_html($event_data['url']) . '</a></dd>' . "\n";
+            $content .= '<dt>Bron:</dt><dd><a href="' . esc_url($event_data['url']) . '" rel="nofollow noopener" target="_blank">' . esc_html($event_data['url']) . '</a></dd>' . "\n";
         }
         
         $content .= '</dl>' . "\n";
@@ -229,12 +229,12 @@ class Importer
         $year = $date->format('Y');
         
         $english_months = [
-            1 => 'January', 2 => 'February', 3 => 'March', 4 => 'April',
-            5 => 'May', 6 => 'June', 7 => 'July', 8 => 'August',
-            9 => 'September', 10 => 'October', 11 => 'November', 12 => 'December'
+            1 => 'januari', 2 => 'februari', 3 => 'maart', 4 => 'april',
+            5 => 'mei', 6 => 'juni', 7 => 'juli', 8 => 'augustus',
+            9 => 'september', 10 => 'oktober', 11 => 'november', 12 => 'december'
         ];
         
-        return "{$day} {$english_months[$month]} {$year}";
+            return "{$day} {$english_months[$month]} {$year}";
     }
 
     /**
@@ -258,7 +258,7 @@ class Importer
         
         if ($result) {
             // Set alt text
-            $alt_text = "Photo of {$title}. Source: {$source_url}";
+            $alt_text = "Foto van {$title}. Bron: {$source_url}";
             update_post_meta($attachment_id, '_wp_attachment_image_alt', $alt_text);
             
             return $attachment_id;
@@ -291,21 +291,21 @@ class Importer
         $file_array['tmp_name'] = download_url($image_url);
         
         if (is_wp_error($file_array['tmp_name'])) {
-            Utils::log('Failed to download image: ' . $file_array['tmp_name']->get_error_message(), 'error');
+            Utils::log('Mislukt om afbeelding te downloaden: ' . $file_array['tmp_name']->get_error_message(), 'error');
             return false;
         }
         
         // Validate image
         $image_info = getimagesize($file_array['tmp_name']);
         if (!$image_info) {
-            Utils::log('Invalid image file: ' . $image_url, 'error');
+            Utils::log('Ongeldig afbeeldingsbestand: ' . $image_url, 'error');
             unlink($file_array['tmp_name']);
             return false;
         }
         
         $rules = Utils::getImageRules();
         if ($image_info[0] < $rules['min_width'] || $image_info[1] < $rules['min_height']) {
-            Utils::log('Image too small: ' . $image_url . ' (' . $image_info[0] . 'x' . $image_info[1] . ')', 'error');
+            Utils::log('Afbeelding te klein: ' . $image_url . ' (' . $image_info[0] . 'x' . $image_info[1] . ')', 'error');
             unlink($file_array['tmp_name']);
             return false;
         }
@@ -314,7 +314,7 @@ class Importer
         $attachment_id = media_handle_sideload($file_array, 0, $title);
         
         if (is_wp_error($attachment_id)) {
-            Utils::log('Failed to upload image: ' . $attachment_id->get_error_message(), 'error');
+            Utils::log('Mislukt om afbeelding te uploaden: ' . $attachment_id->get_error_message(), 'error');
             unlink($file_array['tmp_name']);
             return false;
         }

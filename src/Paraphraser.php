@@ -87,18 +87,18 @@ class Paraphraser
     ];
 
     /**
-     * Sentence starters for variety (English)
+     * Sentence starters for variety (Dutch)
      */
     private static $sentence_starters = [
-        'This event',
-        'This activity',
-        'This gathering',
-        'This workshop',
-        'This talk',
-        'This festival',
-        'This course',
-        'This session',
-        'This presentation',
+        'Dit evenement',
+        'Deze activiteit',
+        'Deze bijeenkomst',
+        'Deze workshop',
+        'Deze lezing',
+        'Dit festival',
+        'Deze cursus',
+        'Deze sessie',
+        'Deze presentatie',
     ];
 
     /**
@@ -202,7 +202,7 @@ class Paraphraser
         }
         
         if (preg_match('/(aanmelden|inschrijven|registreren)/i', $text)) {
-            $facts['registration'] = 'registration required';
+            $facts['registration'] = 'inschrijving vereist';
         }
         
         if (preg_match('/(workshop|cursus|training)/i', $text)) {
@@ -231,24 +231,33 @@ class Paraphraser
         
         if (!empty($key_info['facts']['type'])) {
             $type = $key_info['facts']['type'];
-            $sentences[] = "{$starter} '{$title}' is a {$type}";
+            // Minimal mapping from internal type -> Dutch.
+            $type_nl = $type;
+            if ($type === 'talk') {
+                $type_nl = 'lezing';
+            } elseif ($type === 'festival') {
+                $type_nl = 'festival';
+            } elseif ($type === 'workshop') {
+                $type_nl = 'workshop';
+            }
+            $sentences[] = "{$starter} '{$title}' is een {$type_nl}";
         } else {
-            $sentences[] = "{$starter} '{$title}' takes place";
+            $sentences[] = "{$starter} '{$title}' vindt plaats";
         }
         
         // Add date and time info
         if ($key_info['date']) {
             $date_str = $this->formatDate($key_info['date']);
             if ($key_info['time']) {
-                $sentences[] = "It takes place on {$date_str} at {$key_info['time']}";
+                $sentences[] = "Het vindt plaats op {$date_str} om {$key_info['time']}";
             } else {
-                $sentences[] = "It takes place on {$date_str}";
+                $sentences[] = "Het vindt plaats op {$date_str}";
             }
         }
         
         // Add location
         if (!empty($key_info['place'])) {
-            $sentences[] = "Location: {$key_info['place']}";
+            $sentences[] = "Locatie: {$key_info['place']}";
         }
         
         // Add description content
@@ -259,11 +268,11 @@ class Paraphraser
         
         // Add additional facts
         if (!empty($key_info['facts']['cost'])) {
-            $sentences[] = "Cost: {$key_info['facts']['cost']}";
+            $sentences[] = "Kosten: {$key_info['facts']['cost']}";
         }
         
         if (!empty($key_info['facts']['participants'])) {
-            $sentences[] = "Capacity: {$key_info['facts']['participants']}";
+            $sentences[] = "Capaciteit: {$key_info['facts']['participants']}";
         }
         
         if (!empty($key_info['facts']['registration'])) {
@@ -329,7 +338,7 @@ class Paraphraser
     }
 
     /**
-     * Format date for English text
+     * Format date for Dutch text
      */
     private function formatDate($timestamp)
     {
@@ -340,13 +349,13 @@ class Paraphraser
         $month = $date->format('n');
         $year = $date->format('Y');
         
-        $english_months = [
-            1 => 'January', 2 => 'February', 3 => 'March', 4 => 'April',
-            5 => 'May', 6 => 'June', 7 => 'July', 8 => 'August',
-            9 => 'September', 10 => 'October', 11 => 'November', 12 => 'December'
+        $dutch_months = [
+            1 => 'januari', 2 => 'februari', 3 => 'maart', 4 => 'april',
+            5 => 'mei', 6 => 'juni', 7 => 'juli', 8 => 'augustus',
+            9 => 'september', 10 => 'oktober', 11 => 'november', 12 => 'december'
         ];
         
-        return "{$day} {$english_months[$month]} {$year}";
+        return "{$day} {$dutch_months[$month]} {$year}";
     }
 
     /**
@@ -373,7 +382,7 @@ class Paraphraser
             return $text;
         }
         
-        $link_text = "More info: {$url}";
+        $link_text = "Meer info: {$url}";
         return $text . ' ' . $link_text;
     }
 
@@ -384,20 +393,20 @@ class Paraphraser
     {
         $sentences = [];
         
-        $title = $event_data['title'] ?? 'This event';
-        $sentences[] = "{$title} takes place";
+        $title = $event_data['title'] ?? 'Dit evenement';
+        $sentences[] = "{$title} vindt plaats";
         
         if (!empty($event_data['date_start'])) {
             $date_str = $this->formatDate($event_data['date_start']);
-            $sentences[] = "It takes place on {$date_str}";
+            $sentences[] = "Het vindt plaats op {$date_str}";
         }
         
         if (!empty($event_data['time'])) {
-            $sentences[] = "Start time: {$event_data['time']}";
+            $sentences[] = "Starttijd: {$event_data['time']}";
         }
         
         if (!empty($event_data['place'])) {
-            $sentences[] = "Location: {$event_data['place']}";
+            $sentences[] = "Locatie: {$event_data['place']}";
         }
         
         $description = implode('. ', $sentences) . '.';

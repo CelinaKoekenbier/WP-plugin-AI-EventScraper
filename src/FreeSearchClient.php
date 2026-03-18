@@ -39,7 +39,7 @@ class FreeSearchClient
     public function searchDutchEvents($queries, $max_results = 20)
     {
         if (!$this->hasSearchApi()) {
-            throw new \Exception('SerpAPI key not configured. Add your key in Settings → Apify Events (100 free searches/month).');
+            throw new \Exception('SerpAPI-sleutel is niet ingesteld. Voeg je sleutel toe in Instellingen → Apify Events (100 gratis zoekopdrachten/maand).');
         }
 
         $queries = array_values(array_filter(array_map('trim', (array) $queries)));
@@ -50,12 +50,12 @@ class FreeSearchClient
         // Enforce monthly budget cap (default 100 searches/month).
         $remaining = Utils::getSerpApiRemainingThisMonth();
         if ($remaining <= 0) {
-            Utils::log('SerpAPI monthly budget reached — skipping SerpAPI and using Manual URLs only.', 'info');
+            Utils::log('SerpAPI maandlimiet bereikt — SerpAPI wordt overgeslagen en alleen Handmatige URL’s worden gebruikt.', 'info');
             return [];
         }
         if (count($queries) > $remaining) {
             $queries = array_slice($queries, 0, $remaining);
-            Utils::log('SerpAPI budget cap: limiting queries to ' . count($queries) . ' for this run (remaining this month: ' . $remaining . ').', 'info');
+            Utils::log('SerpAPI maandlimiet: queries beperkt tot ' . count($queries) . ' voor deze run (resterend deze maand: ' . $remaining . ').', 'info');
         }
 
         $all_results = [];
@@ -71,16 +71,16 @@ class FreeSearchClient
                 sleep(1); // rate limit
             } catch (\Exception $e) {
                 $last_error = $e->getMessage();
-                Utils::log('SerpAPI failed for query: ' . $query . ' - ' . $last_error, 'error');
+                Utils::log('SerpAPI mislukt voor zoekopdracht: ' . $query . ' - ' . $last_error, 'error');
                 continue;
             }
         }
 
         if (empty($all_results)) {
             if ($last_error) {
-                throw new \Exception('SerpAPI failed: ' . $last_error);
+                throw new \Exception('SerpAPI mislukt: ' . $last_error);
             }
-            throw new \Exception('SerpAPI returned no results. Try different search queries.');
+            throw new \Exception('SerpAPI leverde geen resultaten op. Probeer andere zoekopdrachten.');
         }
 
         $unique_results = $this->removeDuplicateUrls($all_results);
@@ -110,7 +110,7 @@ class FreeSearchClient
         ]);
 
         if (is_wp_error($response)) {
-            throw new \Exception('SerpAPI request failed: ' . $response->get_error_message());
+            throw new \Exception('SerpAPI-aanvraag mislukt: ' . $response->get_error_message());
         }
 
         $status_code = (int) wp_remote_retrieve_response_code($response);
@@ -119,7 +119,7 @@ class FreeSearchClient
 
         if ($status_code !== 200) {
             $msg = isset($data['error']) ? $data['error'] : substr($body, 0, 200);
-            throw new \Exception('SerpAPI error ' . $status_code . ': ' . $msg);
+            throw new \Exception('SerpAPI-fout ' . $status_code . ': ' . $msg);
         }
 
         if (empty($data['organic_results'])) {
@@ -161,13 +161,13 @@ class FreeSearchClient
         ]);
 
         if (is_wp_error($response)) {
-            Utils::log('Failed to fetch URL: ' . $url . ' - ' . $response->get_error_message(), 'error');
+            Utils::log('Mislukt om URL op te halen: ' . $url . ' - ' . $response->get_error_message(), 'error');
             return null;
         }
 
         $status_code = wp_remote_retrieve_response_code($response);
         if ($status_code !== 200) {
-            Utils::log('HTTP error ' . $status_code . ' for URL: ' . $url, 'error');
+            Utils::log('HTTP-fout ' . $status_code . ' voor URL: ' . $url, 'error');
             return null;
         }
 
@@ -235,9 +235,9 @@ class FreeSearchClient
         foreach ($urls as $url) {
             if (filter_var($url, FILTER_VALIDATE_URL)) {
                 $results[] = [
-                    'title' => 'Manual URL',
+                    'title' => 'Handmatige URL',
                     'url' => $url,
-                    'description' => 'Manually added URL',
+                    'description' => 'Handmatig toegevoegde URL',
                     'source' => 'manual',
                 ];
             }
@@ -251,13 +251,13 @@ class FreeSearchClient
     public function testSerpApi()
     {
         if (!$this->hasSearchApi()) {
-            return ['success' => false, 'message' => 'SerpAPI key not configured. Add it in Settings and save.'];
+            return ['success' => false, 'message' => 'SerpAPI-sleutel is niet ingesteld. Voeg deze toe in Instellingen en sla op.'];
         }
         try {
             $results = $this->serpApiSearch('evenement Nederland', 2);
             return [
                 'success' => true,
-                'message' => 'SerpAPI OK, found ' . count($results) . ' results (100 free searches/month).',
+                'message' => 'SerpAPI OK, gevonden ' . count($results) . ' resultaten (100 gratis zoekopdrachten/maand).',
             ];
         } catch (\Exception $e) {
             return ['success' => false, 'message' => $e->getMessage()];

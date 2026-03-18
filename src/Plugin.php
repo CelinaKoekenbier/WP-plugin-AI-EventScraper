@@ -85,8 +85,8 @@ class Plugin
 
         // Also keep the Settings → submenu entry for convenience
         add_options_page(
-            __('Events to Posts Scraper', 'apify-events-to-posts'),
-            __('Events Scraper', 'apify-events-to-posts'),
+            __('Events naar Posts Scraper', 'apify-events-to-posts'),
+            __('Event Scraper', 'apify-events-to-posts'),
             'manage_options',
             'apify-events',
             [$this, 'renderSettingsPage']
@@ -98,7 +98,7 @@ class Plugin
      */
     public function addPluginActionLinks($links)
     {
-        $settings_link = '<a href="' . admin_url('options-general.php?page=apify-events') . '">' . __('Settings', 'apify-events-to-posts') . '</a>';
+        $settings_link = '<a href="' . admin_url('options-general.php?page=apify-events') . '">' . __('Instellingen', 'apify-events-to-posts') . '</a>';
         array_unshift($links, $settings_link);
         return $links;
     }
@@ -131,9 +131,9 @@ class Plugin
             'ajaxUrl' => admin_url('admin-ajax.php'),
             'nonce' => wp_create_nonce('apify_events_nonce'),
             'strings' => [
-                'running' => __('Running...', 'apify-events-to-posts'),
-                'success' => __('Success!', 'apify-events-to-posts'),
-                'error' => __('Error occurred', 'apify-events-to-posts'),
+                'running' => __('Bezig...', 'apify-events-to-posts'),
+                'success' => __('Gelukt!', 'apify-events-to-posts'),
+                'error' => __('Er is een fout opgetreden', 'apify-events-to-posts'),
             ]
         ]);
     }
@@ -150,7 +150,7 @@ class Plugin
         // General settings section
         add_settings_section(
             'apify_events_general',
-            __('General Settings', 'apify-events-to-posts'),
+            __('Algemene instellingen', 'apify-events-to-posts'),
             [$this, 'renderGeneralSectionDescription'],
             'apify_events_settings'
         );
@@ -158,7 +158,7 @@ class Plugin
         // Manual URLs (place first for quick start)
         add_settings_field(
             'manual_urls',
-            __('Manual URLs (Free)', 'apify-events-to-posts'),
+            __('Handmatige URL’s (gratis)', 'apify-events-to-posts'),
             [$this, 'renderManualUrlsField'],
             'apify_events_settings',
             'apify_events_general'
@@ -167,7 +167,7 @@ class Plugin
         // Apify Token
         add_settings_field(
             'apify_token',
-            __('Apify Token', 'apify-events-to-posts'),
+            __('Apify-token', 'apify-events-to-posts'),
             [$this, 'renderTokenField'],
             'apify_events_settings',
             'apify_events_general'
@@ -176,7 +176,7 @@ class Plugin
         // Queries
         add_settings_field(
             'queries',
-            __('Search Queries', 'apify-events-to-posts'),
+            __('Zoekopdrachten', 'apify-events-to-posts'),
             [$this, 'renderQueriesField'],
             'apify_events_settings',
             'apify_events_general'
@@ -185,7 +185,7 @@ class Plugin
         // Language Code
         add_settings_field(
             'language_code',
-            __('Language Code', 'apify-events-to-posts'),
+            __('Taalcode', 'apify-events-to-posts'),
             [$this, 'renderLanguageCodeField'],
             'apify_events_settings',
             'apify_events_general'
@@ -194,7 +194,7 @@ class Plugin
         // Country Code
         add_settings_field(
             'country_code',
-            __('Country Code', 'apify-events-to-posts'),
+            __('Landcode', 'apify-events-to-posts'),
             [$this, 'renderCountryCodeField'],
             'apify_events_settings',
             'apify_events_general'
@@ -203,7 +203,7 @@ class Plugin
         // Max results per query
         add_settings_field(
             'max_results_per_query',
-            __('Max Results per Query', 'apify-events-to-posts'),
+            __('Max. resultaten per zoekopdracht', 'apify-events-to-posts'),
             [$this, 'renderMaxResultsField'],
             'apify_events_settings',
             'apify_events_general'
@@ -212,7 +212,7 @@ class Plugin
         // Max URLs per domain (diversify sources)
         add_settings_field(
             'max_urls_per_domain',
-            __('Max URLs per domain', 'apify-events-to-posts'),
+            __('Max. URL’s per domein', 'apify-events-to-posts'),
             [$this, 'renderMaxUrlsPerDomainField'],
             'apify_events_settings',
             'apify_events_general'
@@ -221,7 +221,7 @@ class Plugin
         // Excluded domains
         add_settings_field(
             'excluded_domains',
-            __('Excluded Domains', 'apify-events-to-posts'),
+            __('Uitgesloten domeinen', 'apify-events-to-posts'),
             [$this, 'renderExcludedDomainsField'],
             'apify_events_settings',
             'apify_events_general'
@@ -230,7 +230,7 @@ class Plugin
         // Image rules
         add_settings_field(
             'image_rules',
-            __('Image Rules', 'apify-events-to-posts'),
+            __('Afbeeldingsregels', 'apify-events-to-posts'),
             [$this, 'renderImageRulesField'],
             'apify_events_settings',
             'apify_events_general'
@@ -239,7 +239,7 @@ class Plugin
         // SerpAPI Key (web search — 100 free/month)
         add_settings_field(
             'serpapi_api_key',
-            __('SerpAPI Key (web search)', 'apify-events-to-posts'),
+            __('SerpAPI-sleutel (webzoekopdrachten)', 'apify-events-to-posts'),
             [$this, 'renderSerpApiKeyField'],
             'apify_events_settings',
             'apify_events_general'
@@ -248,7 +248,7 @@ class Plugin
         // SerpAPI monthly budget cap
         add_settings_field(
             'serpapi_monthly_budget',
-            __('SerpAPI monthly budget', 'apify-events-to-posts'),
+            __('SerpAPI maandbudget', 'apify-events-to-posts'),
             [$this, 'renderSerpApiMonthlyBudgetField'],
             'apify_events_settings',
             'apify_events_general'
@@ -257,7 +257,7 @@ class Plugin
         // Test mode
         add_settings_field(
             'test_mode',
-            __('Test Mode', 'apify-events-to-posts'),
+            __('Testmodus', 'apify-events-to-posts'),
             [$this, 'renderTestModeField'],
             'apify_events_settings',
             'apify_events_general'
@@ -266,7 +266,7 @@ class Plugin
         // Restrict to target week
         add_settings_field(
             'restrict_to_target_week',
-            __('Restrict to target week only', 'apify-events-to-posts'),
+            __('Beperk tot doelweek', 'apify-events-to-posts'),
             [$this, 'renderRestrictToTargetWeekField'],
             'apify_events_settings',
             'apify_events_general'
@@ -275,7 +275,7 @@ class Plugin
         // Weekly schedule (WP-Cron)
         add_settings_field(
             'weekly_schedule',
-            __('Automatic run schedule', 'apify-events-to-posts'),
+            __('Automatisch runschema', 'apify-events-to-posts'),
             [$this, 'renderWeeklyScheduleField'],
             'apify_events_settings',
             'apify_events_general'
@@ -399,7 +399,7 @@ class Plugin
     public function renderGeneralSectionDescription()
     {
         echo '<p class="description">';
-        echo esc_html__('If "Last modified" on imported posts is 1 hour behind your local time, set Settings → General → Timezone to "Amsterdam" (Europa/Amsterdam).', 'apify-events-to-posts');
+        echo esc_html__('Als "Laatste wijziging" op geïmporteerde posts 1 uur achter loopt op je lokale tijd, zet dan bij Instellingen → Algemeen → Tijdzone de optie op "Amsterdam" (Europa/Amsterdam).', 'apify-events-to-posts');
         echo '</p>';
     }
 
@@ -413,10 +413,10 @@ class Plugin
         $masked_token = $token ? substr($token, 0, 8) . str_repeat('*', max(0, strlen($token) - 8)) : '';
         
         echo '<input type="password" name="apify_events_options[apify_token]" value="' . esc_attr($token) . '" class="regular-text" />';
-        echo '<p class="description" style="color: #999;">' . __('⚠️ OPTIONAL - Only needed for paid Apify method ($49+/month). Leave empty to use free methods.', 'apify-events-to-posts') . '</p>';
-        echo '<p class="description apify-accent-text"><strong>✅ Use "Manual URLs" below instead (completely free, no token needed)</strong></p>';
+        echo '<p class="description" style="color: #999;">' . __('⚠️ OPTIONEEL - Alleen nodig voor de betaalde Apify-methode ($49+/maand). Laat leeg om gratis methodes te gebruiken.', 'apify-events-to-posts') . '</p>';
+        echo '<p class="description apify-accent-text"><strong>✅ Gebruik hieronder "Handmatige URL’s" in plaats daarvan (volledig gratis, geen token nodig)</strong></p>';
         if ($masked_token) {
-            echo '<p class="description">' . sprintf(__('Current token: %s', 'apify-events-to-posts'), esc_html($masked_token)) . '</p>';
+            echo '<p class="description">' . sprintf(__('Huidige token: %s', 'apify-events-to-posts'), esc_html($masked_token)) . '</p>';
         }
     }
 
@@ -435,7 +435,7 @@ class Plugin
         ]);
         
         echo '<textarea name="apify_events_options[queries]" rows="5" cols="50" class="large-text">' . esc_textarea($queries) . '</textarea>';
-        echo '<p class="description">' . __('One query per line. Placeholders: <code>&lt;VOLGEND_MAAND_JAAR&gt;</code> = next month/year, <code>&lt;TARGET_WEEK&gt;</code> = target week (e.g. 6-12 april 2026, 4 weeks ahead).', 'apify-events-to-posts') . '</p>';
+        echo '<p class="description">' . __('Eén zoekopdracht per regel. Placeholders: <code>&lt;VOLGEND_MAAND_JAAR&gt;</code> = volgende maand/jaar, <code>&lt;TARGET_WEEK&gt;</code> = doelweek (bijv. 6-12 april 2026, 4 weken vooruit).', 'apify-events-to-posts') . '</p>';
     }
 
     /**
@@ -447,7 +447,7 @@ class Plugin
         $language_code = $options['language_code'] ?? 'nl';
         
         echo '<input type="text" name="apify_events_options[language_code]" value="' . esc_attr($language_code) . '" class="small-text" />';
-        echo '<p class="description">' . __('Language code for search results (e.g., nl, en).', 'apify-events-to-posts') . '</p>';
+        echo '<p class="description">' . __('Taalcode voor zoekresultaten (bijv. nl, en).', 'apify-events-to-posts') . '</p>';
     }
 
     /**
@@ -459,7 +459,7 @@ class Plugin
         $country_code = $options['country_code'] ?? 'nl';
         
         echo '<input type="text" name="apify_events_options[country_code]" value="' . esc_attr($country_code) . '" class="small-text" />';
-        echo '<p class="description">' . __('Country code for search results (e.g., nl, us).', 'apify-events-to-posts') . '</p>';
+        echo '<p class="description">' . __('Landcode voor zoekresultaten (bijv. nl, us).', 'apify-events-to-posts') . '</p>';
     }
 
     /**
@@ -471,7 +471,7 @@ class Plugin
         $max_results = $options['max_results_per_query'] ?? 20;
         
         echo '<input type="number" name="apify_events_options[max_results_per_query]" value="' . esc_attr($max_results) . '" class="small-text" min="1" max="100" />';
-        echo '<p class="description">' . __('Maximum results per search query.', 'apify-events-to-posts') . '</p>';
+        echo '<p class="description">' . __('Maximale resultaten per zoekopdracht.', 'apify-events-to-posts') . '</p>';
     }
 
     /**
@@ -482,7 +482,7 @@ class Plugin
         $options = get_option('apify_events_options', []);
         $max = $options['max_urls_per_domain'] ?? 10;
         echo '<input type="number" name="apify_events_options[max_urls_per_domain]" value="' . esc_attr($max) . '" class="small-text" min="1" max="50" />';
-        echo '<p class="description">' . __('Cap URLs per domain so one site (e.g. groeneagenda.nl) does not dominate. Manual URLs are always included.', 'apify-events-to-posts') . '</p>';
+        echo '<p class="description">' . __('Beperk URL’s per domein zodat één site (bijv. groeneagenda.nl) niet domineert. Handmatige URL’s worden altijd meegenomen.', 'apify-events-to-posts') . '</p>';
     }
 
     /**
@@ -494,7 +494,7 @@ class Plugin
         $excluded_domains = $options['excluded_domains'] ?? '';
         
         echo '<textarea name="apify_events_options[excluded_domains]" rows="3" cols="50" class="large-text">' . esc_textarea($excluded_domains) . '</textarea>';
-        echo '<p class="description">' . __('Comma-separated list of domains to exclude from results.', 'apify-events-to-posts') . '</p>';
+        echo '<p class="description">' . __('Komma-gescheiden lijst van domeinen om uit de resultaten te negeren.', 'apify-events-to-posts') . '</p>';
     }
 
     /**
@@ -506,9 +506,9 @@ class Plugin
         $min_width = $options['min_image_width'] ?? 300;
         $min_height = $options['min_image_height'] ?? 200;
         
-        echo '<label>' . __('Min Width:', 'apify-events-to-posts') . ' <input type="number" name="apify_events_options[min_image_width]" value="' . esc_attr($min_width) . '" class="small-text" min="100" /></label> ';
-        echo '<label>' . __('Min Height:', 'apify-events-to-posts') . ' <input type="number" name="apify_events_options[min_image_height]" value="' . esc_attr($min_height) . '" class="small-text" min="100" /></label>';
-        echo '<p class="description">' . __('Minimum image dimensions for featured images.', 'apify-events-to-posts') . '</p>';
+        echo '<label>' . __('Min. breedte:', 'apify-events-to-posts') . ' <input type="number" name="apify_events_options[min_image_width]" value="' . esc_attr($min_width) . '" class="small-text" min="100" /></label> ';
+        echo '<label>' . __('Min. hoogte:', 'apify-events-to-posts') . ' <input type="number" name="apify_events_options[min_image_height]" value="' . esc_attr($min_height) . '" class="small-text" min="100" /></label>';
+        echo '<p class="description">' . __('Minimale afbeeldingsafmetingen voor uitgelichte afbeeldingen.', 'apify-events-to-posts') . '</p>';
     }
 
     /**
@@ -519,7 +519,7 @@ class Plugin
         $options = get_option('apify_events_options', []);
         $key = $options['serpapi_api_key'] ?? '';
         echo '<input type="text" name="apify_events_options[serpapi_api_key]" value="' . esc_attr($key) . '" class="regular-text" />';
-        echo '<p class="description">' . __('API key for web search (Google results via SerpAPI). <a href="https://serpapi.com/users/sign_up" target="_blank">Sign up</a> — 100 free searches/month.', 'apify-events-to-posts') . '</p>';
+        echo '<p class="description">' . __('SerpAPI-sleutel voor webzoekopdrachten (Google-resultaten via SerpAPI). <a href="https://serpapi.com/users/sign_up" target="_blank">Registreren</a> — 100 gratis zoekopdrachten/maand.', 'apify-events-to-posts') . '</p>';
     }
 
     /**
@@ -535,12 +535,12 @@ class Plugin
         echo '<input type="number" name="apify_events_options[serpapi_monthly_budget]" value="' . esc_attr($budget) . '" class="small-text" min="0" max="100000" /> ';
 
         echo '<span class="description">' . sprintf(
-            esc_html__('Used this month: %d. Remaining: %d.', 'apify-events-to-posts'),
+            esc_html__('Deze maand gebruikt: %d. Resterend: %d.', 'apify-events-to-posts'),
             (int) $used,
             (int) $remaining
         ) . '</span>';
 
-        echo '<p class="description">' . esc_html__('0 disables SerpAPI usage (Manual URLs only). Default budget: 200.', 'apify-events-to-posts') . '</p>';
+        echo '<p class="description">' . esc_html__('0 schakelt SerpAPI uit (alleen Handmatige URL’s). Standaard budget: 200.', 'apify-events-to-posts') . '</p>';
     }
 
     /**
@@ -552,13 +552,13 @@ class Plugin
         $manual_urls = $options['manual_urls'] ?? '';
         
         echo '<div class="apify-start-here">';
-        echo '<strong>🎯 START HERE - Easiest Method!</strong><br>';
-        echo esc_html__('Add event page URLs below. No API tokens required, works immediately!', 'apify-events-to-posts');
+        echo '<strong>🎯 START HIER - Makkelijkste methode!</strong><br>';
+        echo esc_html__('Voeg hieronder event-URL’s toe. Geen API-tokens nodig, werkt meteen!', 'apify-events-to-posts');
         echo '</div>';
         
         echo '<textarea name="apify_events_options[manual_urls]" rows="8" cols="50" class="large-text" placeholder="https://www.natuurmonumenten.nl/agenda&#10;https://www.ivn.nl/agenda&#10;https://www.staatsbosbeheer.nl/evenementen">' . esc_textarea($manual_urls) . '</textarea>';
-        echo '<p class="description">' . __('✅ One URL per line. If empty, the plugin uses default agenda URLs (natuurmonumenten, ivn, staatsbosbeheer).', 'apify-events-to-posts') . '</p>';
-        echo '<p class="description"><strong>' . __('Example URLs to try:', 'apify-events-to-posts') . '</strong><br>';
+        echo '<p class="description">' . __('✅ Eén URL per regel. Als leeg, gebruikt de plugin standaard agenda-URL’s (natuurmonumenten, ivn, staatsbosbeheer).', 'apify-events-to-posts') . '</p>';
+        echo '<p class="description"><strong>' . __('Voorbeeld-URL’s om te proberen:', 'apify-events-to-posts') . '</strong><br>';
         echo 'https://www.natuurmonumenten.nl/agenda<br>';
         echo 'https://www.ivn.nl/agenda<br>';
         echo 'https://www.staatsbosbeheer.nl/evenementen</p>';
@@ -572,8 +572,8 @@ class Plugin
         $options = get_option('apify_events_options', []);
         $test_mode = $options['test_mode'] ?? false;
         
-        echo '<label><input type="checkbox" name="apify_events_options[test_mode]" value="1" ' . checked($test_mode, true, false) . ' /> ' . __('Enable test mode (don\'t save posts)', 'apify-events-to-posts') . '</label>';
-        echo '<p class="description">' . __('If disabled the found events will be saved in posts but not published. You should publish them manually.', 'apify-events-to-posts') . '</p>';
+        echo '<label><input type="checkbox" name="apify_events_options[test_mode]" value="1" ' . checked($test_mode, true, false) . ' /> ' . __('Testmodus inschakelen (posts niet opslaan)', 'apify-events-to-posts') . '</label>';
+        echo '<p class="description">' . __('Als uitgeschakeld, worden gevonden events opgeslagen in posts maar niet gepubliceerd. Je moet ze handmatig publiceren.', 'apify-events-to-posts') . '</p>';
     }
 
     /**
@@ -584,8 +584,8 @@ class Plugin
         $options = get_option('apify_events_options', []);
         $restrict = $options['restrict_to_target_week'] ?? false;
         echo '<label><input type="checkbox" name="apify_events_options[restrict_to_target_week]" value="1" ' . checked($restrict, true, false) . ' /> ';
-        echo __('Only import events from the target week (4 weeks ahead)', 'apify-events-to-posts') . '</label>';
-        echo '<p class="description">' . __('If disabled, the plugin imports all valid events (future dates). Enable to restrict to the specific target week.', 'apify-events-to-posts') . '</p>';
+        echo __('Importeer alleen events uit de doelweek (4 weken vooruit)', 'apify-events-to-posts') . '</label>';
+        echo '<p class="description">' . __('Als uitgeschakeld importeert de plugin alle geldige events (toekomstige data). Zet dit aan om te beperken tot de specifieke doelweek.', 'apify-events-to-posts') . '</p>';
     }
 
     /**
@@ -604,27 +604,27 @@ class Plugin
         }
 
         $days = [
-            1 => __('Monday', 'apify-events-to-posts'),
-            2 => __('Tuesday', 'apify-events-to-posts'),
-            3 => __('Wednesday', 'apify-events-to-posts'),
-            4 => __('Thursday', 'apify-events-to-posts'),
-            5 => __('Friday', 'apify-events-to-posts'),
-            6 => __('Saturday', 'apify-events-to-posts'),
-            7 => __('Sunday', 'apify-events-to-posts'),
+            1 => __('Maandag', 'apify-events-to-posts'),
+            2 => __('Dinsdag', 'apify-events-to-posts'),
+            3 => __('Woensdag', 'apify-events-to-posts'),
+            4 => __('Donderdag', 'apify-events-to-posts'),
+            5 => __('Vrijdag', 'apify-events-to-posts'),
+            6 => __('Zaterdag', 'apify-events-to-posts'),
+            7 => __('Zondag', 'apify-events-to-posts'),
         ];
 
-        echo '<label>' . esc_html__('Day', 'apify-events-to-posts') . ' ';
+        echo '<label>' . esc_html__('Dag', 'apify-events-to-posts') . ' ';
         echo '<select name="apify_events_options[weekly_day]">';
         foreach ($days as $k => $label) {
             echo '<option value="' . esc_attr($k) . '" ' . selected($day, $k, false) . '>' . esc_html($label) . '</option>';
         }
         echo '</select></label> ';
 
-        echo '<label style="margin-left:12px;">' . esc_html__('Time (Europe/Amsterdam)', 'apify-events-to-posts') . ' ';
+        echo '<label style="margin-left:12px;">' . esc_html__('Tijd (Europe/Amsterdam)', 'apify-events-to-posts') . ' ';
         echo '<input type="time" name="apify_events_options[weekly_time]" value="' . esc_attr($time) . '" /></label>';
 
         echo '<p class="description">' . esc_html__(
-            'Controls the weekly WP-Cron run time. Note: WP-Cron triggers on site visits; if there are no visits at that exact time, it will run on the next visit.',
+            'Bepaalt het tijdstip van de wekelijkse WP-Cron-run. Let op: WP-Cron start bij bezoek aan de site; als er geen bezoek is op dat exacte moment, draait hij bij het eerstvolgende bezoek.',
             'apify-events-to-posts'
         ) . '</p>';
     }
@@ -643,7 +643,7 @@ class Plugin
             
             error_log('Apify Events: Checking permissions');
             if (!current_user_can('manage_options')) {
-                wp_die(__('Insufficient permissions', 'apify-events-to-posts'));
+                wp_die(__('Onvoldoende rechten', 'apify-events-to-posts'));
             }
 
             error_log('Apify Events: Creating Runner instance');
@@ -660,7 +660,7 @@ class Plugin
             error_log('Apify Events: Exception file: ' . $e->getFile() . ' line: ' . $e->getLine());
             Utils::log('AJAX run failed: ' . $e->getMessage(), 'error');
             wp_send_json_error([
-                'message' => 'Run failed: ' . $e->getMessage(),
+                'message' => 'Run mislukt: ' . $e->getMessage(),
                 'error' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine()
@@ -670,7 +670,7 @@ class Plugin
             error_log('Apify Events: Error file: ' . $e->getFile() . ' line: ' . $e->getLine());
             Utils::log('AJAX run fatal error: ' . $e->getMessage(), 'error');
             wp_send_json_error([
-                'message' => 'Fatal error: ' . $e->getMessage(),
+                'message' => 'Fatale fout: ' . $e->getMessage(),
                 'error' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine()
@@ -685,7 +685,7 @@ class Plugin
     {
         check_ajax_referer('apify_events_nonce', 'nonce');
         if (!current_user_can('manage_options')) {
-            wp_send_json_error(['message' => 'Insufficient permissions']);
+            wp_send_json_error(['message' => 'Onvoldoende rechten']);
         }
         $client = new FreeSearchClient();
         $result = $client->testSerpApi();
@@ -706,7 +706,7 @@ class Plugin
         if ($days_since_last_run > 45) {
             echo '<div class="notice notice-warning"><p>';
             echo sprintf(
-                __('Events Scraper: No successful run in the last %d days. <a href="%s">Check settings</a> or <a href="%s">run now</a>.', 'apify-events-to-posts'),
+                __('Event Scraper: geen succesvolle run in de laatste %d dagen. <a href="%s">Bekijk instellingen</a> of <a href="%s">run nu</a>.', 'apify-events-to-posts'),
                 round($days_since_last_run),
                 admin_url('options-general.php?page=apify-events'),
                 admin_url('options-general.php?page=apify-events')

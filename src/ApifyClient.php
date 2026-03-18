@@ -50,7 +50,7 @@ class ApifyClient
     public function runGoogleSearchScraper($queries, $language_code = 'nl', $country_code = 'nl', $max_pages_per_query = 1)
     {
         if (!$this->hasToken()) {
-            throw new \Exception('Apify token not configured');
+            throw new \Exception('Apify-token niet ingesteld');
         }
 
         $url = self::API_BASE_URL . '/acts/apify/google-search-scraper/runs';
@@ -74,7 +74,7 @@ class ApifyClient
         Utils::log('Response received: ' . json_encode($response), 'info');
         
         if (!$response || !isset($response['data']['id'])) {
-            throw new \Exception('Failed to start Google Search Scraper');
+            throw new \Exception('Mislukt om Google Search Scraper te starten');
         }
 
         return $response['data']['id'];
@@ -86,7 +86,7 @@ class ApifyClient
     public function getGoogleSearchResults($run_id)
     {
         if (!$this->hasToken()) {
-            throw new \Exception('Apify token not configured');
+            throw new \Exception('Apify-token niet ingesteld');
         }
 
         $url = self::API_BASE_URL . "/acts/apify/google-search-scraper/runs/{$run_id}/dataset/items";
@@ -94,7 +94,7 @@ class ApifyClient
         $response = $this->makeRequest('GET', $url);
         
         if (!$response || !isset($response['data'])) {
-            throw new \Exception('Failed to get Google Search results');
+            throw new \Exception('Mislukt om Google Search-resultaten op te halen');
         }
 
         return $response['data'];
@@ -106,7 +106,7 @@ class ApifyClient
     public function runWebsiteContentCrawler($urls, $max_crawl_depth = 0)
     {
         if (!$this->hasToken()) {
-            throw new \Exception('Apify token not configured');
+            throw new \Exception('Apify-token niet ingesteld');
         }
 
         $url = self::API_BASE_URL . '/acts/apify/website-content-crawler/runs';
@@ -125,7 +125,7 @@ class ApifyClient
         $response = $this->makeRequest('POST', $url, $data);
         
         if (!$response || !isset($response['data']['id'])) {
-            throw new \Exception('Failed to start Website Content Crawler');
+            throw new \Exception('Mislukt om Website Content Crawler te starten');
         }
 
         return $response['data']['id'];
@@ -137,7 +137,7 @@ class ApifyClient
     public function getWebsiteContentResults($run_id)
     {
         if (!$this->hasToken()) {
-            throw new \Exception('Apify token not configured');
+            throw new \Exception('Apify-token niet ingesteld');
         }
 
         $url = self::API_BASE_URL . "/acts/apify/website-content-crawler/runs/{$run_id}/dataset/items";
@@ -145,7 +145,7 @@ class ApifyClient
         $response = $this->makeRequest('GET', $url);
         
         if (!$response || !isset($response['data'])) {
-            throw new \Exception('Failed to get Website Content results');
+            throw new \Exception('Mislukt om Website Content-resultaten op te halen');
         }
 
         return $response['data'];
@@ -157,7 +157,7 @@ class ApifyClient
     public function runWebScraper($urls)
     {
         if (!$this->hasToken()) {
-            throw new \Exception('Apify token not configured');
+            throw new \Exception('Apify-token niet ingesteld');
         }
 
         $url = self::API_BASE_URL . '/acts/apify/web-scraper/runs';
@@ -174,7 +174,7 @@ class ApifyClient
         $response = $this->makeRequest('POST', $url, $data);
         
         if (!$response || !isset($response['data']['id'])) {
-            throw new \Exception('Failed to start Web Scraper');
+            throw new \Exception('Mislukt om Web Scraper te starten');
         }
 
         return $response['data']['id'];
@@ -186,7 +186,7 @@ class ApifyClient
     public function getWebScraperResults($run_id)
     {
         if (!$this->hasToken()) {
-            throw new \Exception('Apify token not configured');
+            throw new \Exception('Apify-token niet ingesteld');
         }
 
         $url = self::API_BASE_URL . "/acts/apify/web-scraper/runs/{$run_id}/dataset/items";
@@ -194,7 +194,7 @@ class ApifyClient
         $response = $this->makeRequest('GET', $url);
         
         if (!$response || !isset($response['data'])) {
-            throw new \Exception('Failed to get Web Scraper results');
+            throw new \Exception('Mislukt om Web Scraper-resultaten op te halen');
         }
 
         return $response['data'];
@@ -212,7 +212,7 @@ class ApifyClient
             $response = $this->makeRequest('GET', $url);
             
             if (!$response || !isset($response['data']['status'])) {
-                throw new \Exception('Failed to get run status');
+                throw new \Exception('Kon runstatus niet ophalen');
             }
             
             $status = $response['data']['status'];
@@ -222,14 +222,14 @@ class ApifyClient
             }
             
             if ($status === 'FAILED' || $status === 'ABORTED') {
-                throw new \Exception("Run failed with status: {$status}");
+                throw new \Exception("Run mislukt met status: {$status}");
             }
             
             // Wait 5 seconds before checking again
             sleep(5);
         }
         
-        throw new \Exception('Run timeout exceeded');
+        throw new \Exception('Run-time-out overschreden');
     }
 
     /**
@@ -253,7 +253,7 @@ class ApifyClient
         $response = wp_remote_request($url, $args);
         
         if (is_wp_error($response)) {
-            throw new \Exception('HTTP request failed: ' . $response->get_error_message());
+            throw new \Exception('HTTP-aanvraag mislukt: ' . $response->get_error_message());
         }
 
         $status_code = wp_remote_retrieve_response_code($response);
@@ -261,14 +261,14 @@ class ApifyClient
         
         if ($status_code >= 400) {
             $error_data = json_decode($body, true);
-            $error_message = $error_data['error']['message'] ?? 'Unknown error';
-            throw new \Exception("API error {$status_code}: {$error_message}");
+            $error_message = $error_data['error']['message'] ?? 'Onbekende fout';
+            throw new \Exception("API-fout {$status_code}: {$error_message}");
         }
 
         $decoded_body = json_decode($body, true);
         
         if (json_last_error() !== JSON_ERROR_NONE) {
-            throw new \Exception('Invalid JSON response: ' . json_last_error_msg());
+            throw new \Exception('Ongeldige JSON-respons: ' . json_last_error_msg());
         }
 
         return $decoded_body;
@@ -327,7 +327,7 @@ class ApifyClient
     public function getRunStatus($run_id, $actor_name = 'apify/google-search-scraper')
     {
         if (!$this->hasToken()) {
-            throw new \Exception('Apify token not configured');
+            throw new \Exception('Apify-token niet ingesteld');
         }
 
         $url = self::API_BASE_URL . "/acts/{$actor_name}/runs/{$run_id}";
@@ -335,7 +335,7 @@ class ApifyClient
         $response = $this->makeRequest('GET', $url);
         
         if (!$response || !isset($response['data']['status'])) {
-            throw new \Exception('Failed to get run status');
+            throw new \Exception('Kon runstatus niet ophalen');
         }
 
         return $response['data']['status'];
@@ -347,7 +347,7 @@ class ApifyClient
     public function abortRun($run_id, $actor_name = 'apify/google-search-scraper')
     {
         if (!$this->hasToken()) {
-            throw new \Exception('Apify token not configured');
+            throw new \Exception('Apify-token niet ingesteld');
         }
 
         $url = self::API_BASE_URL . "/acts/{$actor_name}/runs/{$run_id}/abort";
